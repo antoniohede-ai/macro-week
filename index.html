@@ -1,0 +1,582 @@
+<title>Macro Week</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: single phone-width column — next-up ticket, filters, day-by-day tape, central bank ledger */
+:root {
+  --bg: #eef2f6; --surface: #ffffff; --ink: #122130; --muted: #5a6a7b; --line: #d8e0e9;
+  --accent: #0d5c97; --accent-soft: #e2edf7; --s2: #8e3fa0;
+  --high: #c4352b; --med: #c98410; --hol: #7a8796;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d131a; --surface: #151f29; --ink: #e4ebf2; --muted: #8b9aaa; --line: #243240;
+  --accent: #62aee8; --accent-soft: #17293a; --s2: #c68ad6; --high: #f0665b; --med: #e7a93d; --hol: #7d8b99; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0d131a; --surface: #151f29; --ink: #e4ebf2; --muted: #8b9aaa; --line: #243240;
+  --accent: #62aee8; --accent-soft: #17293a; --s2: #c68ad6; --high: #f0665b; --med: #e7a93d; --hol: #7d8b99; color-scheme: dark }
+
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.45 var(--body); }
+.wrap { max-width: 34rem; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: grid; gap: 22px; }
+header { display: grid; gap: 2px; }
+.eyebrow { font: 500 11px/1.2 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font: 700 2.1rem/1 var(--display); margin: 0; letter-spacing: -.01em; }
+h2 { font: 600 1.05rem/1.2 var(--display); margin: 0; letter-spacing: .02em; text-transform: uppercase; }
+.sub { color: var(--muted); font-size: 13px; }
+
+.next { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 4px; }
+.next .lbl { display: flex; justify-content: space-between; gap: 8px; }
+.next .ttl { font: 600 1.15rem/1.25 var(--body); }
+.brief { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; display: grid; gap: 4px; }
+.brief ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.brief .sub { font-size: 12px; }
+.next .when { font: 500 13px var(--mono); color: var(--accent); }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button, .toggle { font: 500 13px var(--mono); color: var(--muted); background: none; border: 0; padding: 7px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.toggle { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); display: inline-flex; gap: 6px; align-items: center; }
+.toggle[aria-pressed="true"] { color: var(--high); border-color: var(--high); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.day { display: grid; gap: 0; }
+.dayhead { display: flex; align-items: baseline; gap: 8px; padding-block: 6px; border-bottom: 1px solid var(--ink); }
+.dayhead h3 { font: 600 1rem var(--display); margin: 0; letter-spacing: .02em; }
+.tag { font: 500 10px var(--mono); text-transform: uppercase; letter-spacing: .08em; padding: 2px 6px; border-radius: 4px; background: var(--accent); color: var(--surface); }
+.row { display: grid; grid-template-columns: 3.4rem 1.6rem 1fr; gap: 10px; padding-block: 9px; border-bottom: 1px solid var(--line); align-items: start; }
+.row.past { opacity: .5; }
+.t { font: 500 13px/1.5 var(--mono); font-variant-numeric: tabular-nums; }
+.cc { font: 500 11px/1.4 var(--mono); border: 1px solid var(--line); border-radius: 4px; text-align: center; padding-block: 1px; margin-top: 1px; color: var(--muted); }
+.ev { min-width: 0; display: grid; gap: 1px; }
+.ev .name { display: flex; gap: 7px; align-items: baseline; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex: none; transform: translateY(-1px); }
+.dot.Low { background: transparent; box-shadow: inset 0 0 0 1.5px var(--muted); }
+.dot.High { background: var(--high); } .dot.Medium { background: var(--med); } .dot.Holiday { background: var(--hol); }
+.row.High .name { font-weight: 600; }
+.nums { font: 400 12px var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.nums b { font-weight: 500; color: var(--ink); }
+.empty { color: var(--muted); padding-block: 10px; font-size: 13px; }
+
+.cb { display: grid; }
+.cbrow { display: grid; grid-template-columns: 4.6rem 3.2rem 1fr auto; gap: 10px; padding-block: 9px; border-bottom: 1px solid var(--line); align-items: baseline; }
+.cbrow .d { font: 500 13px var(--mono); font-variant-numeric: tabular-nums; }
+.bank { font: 600 13px var(--display); letter-spacing: .03em; }
+.cbrow .n { color: var(--muted); font-size: 12px; min-width: 0; }
+.away { font: 500 12px var(--mono); color: var(--accent); white-space: nowrap; }
+.away.soon { color: var(--high); }
+
+.yt { width: 100%; border-collapse: collapse; font: 500 13px var(--mono); font-variant-numeric: tabular-nums; }
+.yt th { font: 500 10px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); text-align: right; padding-block: 6px; border-bottom: 1px solid var(--ink); }
+.yt th:first-child, .yt td:first-child { text-align: left; }
+.yt td { text-align: right; padding-block: 8px; border-bottom: 1px solid var(--line); }
+.yt td.lvl { font-weight: 500; color: var(--ink); }
+.yt td.chg { color: var(--muted); }
+.yt tr.spread td { color: var(--muted); }
+.yt svg { display: block; margin-left: auto; }
+.spark { fill: none; stroke: var(--accent); stroke-width: 1.5; }
+.spark-end { fill: var(--accent); }
+.head2 { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.tabs { justify-self: start; }
+.tabs button { font: 600 14px var(--display); letter-spacing: .04em; text-transform: uppercase; padding: 8px 18px; }
+.charts { display: grid; gap: 14px; }
+.chart { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px 8px; display: grid; gap: 2px; }
+.chead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.chead h3 { font: 600 1rem/1.2 var(--display); margin: 0; letter-spacing: .02em; }
+.chead .tag { background: var(--high); white-space: nowrap; }
+.chead .tag.old { background: var(--med); }
+.readout { font: 500 13px var(--mono); font-variant-numeric: tabular-nums; min-height: 1.45em; }
+.readout b { font: 600 1.25rem var(--body); margin-right: 2px; }
+.readout .k { display: inline-block; width: 10px; height: 2px; vertical-align: middle; margin-inline: 6px 4px; }
+.cmp { color: var(--muted); font-size: 12px; }
+.chart.is-stale { border-color: var(--med); }
+.stale { font: 500 12px/1.4 var(--body); color: var(--med); border-left: 3px solid var(--med); padding: 2px 0 2px 8px; margin-block: 4px 2px; }
+.chart svg { display: block; width: 100%; height: auto; touch-action: pan-y; margin-top: 4px; }
+.chart .ax { font: 400 9px var(--mono); fill: var(--muted); }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .zero { stroke: var(--muted); stroke-width: 1; }
+.chart .bar { fill: var(--accent); opacity: .5; }
+.chart .bar.last, .chart .bar.on { opacity: 1; }
+.chart .ln { fill: none; stroke-width: 2; stroke-linejoin: round; }
+.chart .xh { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 2; }
+.s0 { stroke: var(--accent); fill: var(--accent); background: var(--accent); }
+.s1 { stroke: var(--med); fill: var(--med); background: var(--med); }
+.s2 { stroke: var(--s2); fill: var(--s2); background: var(--s2); }
+.curve { display: grid; gap: 22px; }
+.curve .card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; }
+.curve .ttl { font: 600 1.15rem/1.25 var(--body); }
+.curve .tag.Low { background: var(--hol); } .curve .tag.Medium { background: var(--med); } .curve .tag.High { background: var(--high); }
+.legs { display: flex; flex-wrap: wrap; gap: 6px; }
+.leg { font: 500 12px var(--mono); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+.leg.Buy { color: var(--accent); border-color: var(--accent); }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px 10px; }
+.stats div { display: grid; gap: 1px; min-width: 0; }
+.stats b { font: 500 14px var(--mono); font-variant-numeric: tabular-nums; }
+.why { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); display: grid; gap: 4px; }
+.why b { color: var(--ink); font-weight: 500; }
+.curve .chart { padding: 0; border: 0; }
+.chart .band { fill: var(--accent-soft); }
+.chart .mean { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 3; }
+.chart .lbl { font: 500 10px var(--mono); }
+.yt tr.pick td { color: var(--ink); font-weight: 600; }
+.yt td.sig { text-align: left; color: var(--muted); font: 400 12px var(--body); padding-left: 10px; }
+.news { color: var(--ink); text-decoration: none; font: 600 1.05rem/1.3 var(--body); }
+.news:hover { color: var(--accent); text-decoration: underline; }
+.note { color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+.note p { margin: 0; }
+.yt td.pend { color: var(--muted); font-style: italic; }
+.yt td .dt { display: block; font: 400 11px var(--body); color: var(--muted); }
+.yt th.l, .yt td.l { text-align: left; }
+@media (max-width: 380px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+.nums .act { margin-left: 8px; color: var(--ink); }
+.nums .act.big { color: var(--med); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 8px; min-width: 0; }
+.card .ttl { font: 600 1.15rem/1.25 var(--body); }
+.read { font: 500 10px var(--mono); text-transform: uppercase; letter-spacing: .08em; padding: 1px 5px; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; }
+.read.strong { color: var(--accent); } .read.weak { color: var(--high); } .read.average { color: var(--muted); }
+.yt.auc td { vertical-align: top; }
+.yt.auc td + td, .yt.auc th + th { padding-left: 12px; }
+.yt.auc td:first-child { font: 500 13px var(--body); white-space: normal; min-width: 8.5rem; }
+.redline { display: grid; gap: 8px; margin-top: 4px; font-size: 13px; }
+.redline p { margin: 0; overflow-wrap: anywhere; }
+.redline del { color: var(--high); }
+.redline ins { color: var(--accent); background: var(--accent-soft); text-decoration: none; font-weight: 500; }
+.redline .gap { color: var(--muted); }
+details summary { cursor: pointer; font: 500 12px var(--mono); color: var(--accent); }
+.airead { margin: 0; padding-left: 18px; font-size: 13px; display: grid; gap: 4px; }
+footer { color: var(--muted); font-size: 12px; display: grid; gap: 4px; }
+footer a { color: var(--accent); }
+@media (max-width: 380px) { .cbrow { grid-template-columns: 4.2rem 2.8rem 1fr auto; gap: 8px; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow" id="range">This week</span>
+    <h1>Macro Week</h1>
+    <span class="sub" id="updated"></span>
+  </header>
+
+  <div class="seg tabs" role="group" aria-label="View">
+    <button data-tab="week">Week</button>
+    <button data-tab="charts">Charts</button>
+    <button data-tab="curve">Curve</button>
+  </div>
+
+  <section class="next" id="next" aria-label="Next high-impact release"></section>
+
+  <section class="brief" id="brief" aria-label="Today's brief" hidden></section>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Country">
+      <button id="f-all" data-c="all">All</button>
+      <button id="f-us" data-c="US">US</button>
+      <button id="f-ca" data-c="CA">CA</button>
+      <button id="f-uk" data-c="UK">UK</button>
+    </div>
+    <button class="toggle" id="f-high" aria-pressed="false"><span class="dot High"></span>High only</button>
+  </div>
+
+  <section id="charts" class="charts" aria-label="Charts" hidden></section>
+
+  <section id="week" aria-label="This week's releases"></section>
+
+  <section id="curve" class="curve" aria-label="Curve strategy" hidden></section>
+
+  <section id="cbsec" style="display:grid;gap:8px">
+    <h2>Rate decisions ahead</h2>
+    <div class="cb" id="cb"></div>
+  </section>
+
+  <section id="fsec" style="display:grid;gap:8px" hidden>
+    <h2>Last FOMC statement</h2>
+    <div class="card" id="fomc"></div>
+  </section>
+
+  <section id="asec" style="display:grid;gap:8px" hidden>
+    <div class="head2"><h2>Treasury auctions</h2><span class="sub">vs last-6 average</span></div>
+    <div style="overflow-x:auto"><table class="yt auc" id="auc"></table></div>
+  </section>
+
+  <section id="ysec" style="display:grid;gap:8px">
+    <div class="head2"><h2>US Treasury yields</h2><span class="sub" id="yasof"></span></div>
+    <div style="overflow-x:auto"><table class="yt" id="yt"></table></div>
+  </section>
+
+  <footer>
+    <span>Times are in your device's time zone. <span class="dot High" style="display:inline-block"></span> high impact · <span class="dot Medium" style="display:inline-block"></span> medium · <span class="dot Low" style="display:inline-block"></span> lower impact (GDP, retail sales, confidence, permits, Treasury auctions) · <span class="dot Holiday" style="display:inline-block"></span> bank holiday.</span>
+    <span>Curve tab: a model output from public data, not investment advice. The trade, z-scores and half-lives are recomputed at each refresh from the last year of Treasury par yields; the headline is the most Treasury-specific CNBC story of the last 3 days at refresh time.</span>
+    <span>Actuals (act ▲ above / ▼ below / = in line with forecast, ⚡ big surprise) are US releases only, from FRED once it has the new print. Auctions: Treasury coupon auctions from TreasuryDirect; cover, indirect and dealer shares (of competitive accepted) vs the last 6 auctions of the same term; strong/weak from cover ±0.10 and dealer take ∓2pp vs average; the tail vs when-issued needs paid data and isn't shown. FOMC: the latest statement from federalreserve.gov, redlined against the previous one.</span>
+    <span>Charts show the last 3 years: long enough to see the post-2022 tightening and easing cycle, short enough to read on a phone. Tap or drag a chart to read any point. Sources: FRED (US BLS, BEA, Census, Fed), Statistics Canada, ONS and the Bank of England.</span>
+    <span>The page refreshes daily at 07:00 from the Forex Factory weekly feed. Yields are official Treasury par yields at each day's close; changes are in basis points. Rate decisions come from the <a href="https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm">Fed</a>, <a href="https://www.bankofcanada.ca/core-functions/monetary-policy/key-interest-rate/">Bank of Canada</a> and <a href="https://www.bankofengland.co.uk/monetary-policy/upcoming-mpc-dates">Bank of England</a> calendars.</span>
+  </footer>
+</div>
+
+<script>
+const DATA = {"updated": "2026-10-31T06:41:59+00:00", "events": [{"title": "CB Consumer Confidence", "country": "US", "date": "2026-10-27T10:00:00-04:00", "impact": "Medium", "forecast": "81.2", "previous": "81.9"}, {"title": "Annual Budget Release", "country": "UK", "date": "2026-10-28T08:30:00-04:00", "impact": "High", "forecast": "", "previous": ""}, {"title": "Autumn Forecast Statement", "country": "UK", "date": "2026-10-28T08:30:00-04:00", "impact": "Medium", "forecast": "", "previous": ""}, {"title": "BOC Monetary Policy Report", "country": "CA", "date": "2026-10-28T09:45:00-04:00", "impact": "High", "forecast": "", "previous": ""}, {"title": "BOC Rate Statement", "country": "CA", "date": "2026-10-28T09:45:00-04:00", "impact": "High", "forecast": "", "previous": ""}, {"title": "Overnight Rate", "country": "CA", "date": "2026-10-28T09:45:00-04:00", "impact": "High", "forecast": "2.50%", "previous": "2.25%"}, {"title": "BOC Press Conference", "country": "CA", "date": "2026-10-28T10:30:00-04:00", "impact": "High", "forecast": "", "previous": ""}, {"title": "Federal Funds Rate", "country": "US", "date": "2026-10-28T14:00:00-04:00", "impact": "High", "forecast": "4.00%", "previous": "4.00%"}, {"title": "FOMC Statement", "country": "US", "date": "2026-10-28T14:00:00-04:00", "impact": "High", "forecast": "", "previous": ""}, {"title": "FOMC Press Conference", "country": "US", "date": "2026-10-28T14:30:00-04:00", "impact": "High", "forecast": "", "previous": ""}, {"title": "Advance GDP q/q", "country": "US", "date": "2026-10-29T08:30:00-04:00", "impact": "High", "forecast": "3.2%", "previous": "1.5%", "actual": "3.4%", "surprise": {"dir": "above", "by": "0.2pp", "big": true}}, {"title": "Core PCE Price Index m/m", "country": "US", "date": "2026-10-29T08:30:00-04:00", "impact": "High", "forecast": "0.3%", "previous": "0.2%", "actual": "0.3%", "surprise": {"dir": "in line", "by": "", "big": false}}, {"title": "Advance GDP Price Index q/q", "country": "US", "date": "2026-10-29T08:30:00-04:00", "impact": "Medium", "forecast": "3.2%", "previous": "6.2%"}, {"title": "Unemployment Claims", "country": "US", "date": "2026-10-29T08:30:00-04:00", "impact": "Medium", "forecast": "198K", "previous": "194K", "actual": "194K", "surprise": {"dir": "below", "by": "4K", "big": false}}, {"title": "GDP m/m", "country": "CA", "date": "2026-10-30T08:30:00-04:00", "impact": "Medium", "forecast": "0.2%", "previous": "0.0%"}, {"title": "Employment Cost Index q/q", "country": "US", "date": "2026-10-30T08:30:00-04:00", "impact": "Medium", "forecast": "0.8%", "previous": "0.9%"}], "auctions": [{"date": "2026-10-29", "term": "7-Year Note", "size_bn": 44.0, "yield": 4.894, "yield_chg_bp": -19.1, "btc": 2.46, "btc_avg": 2.49, "indirect": 57.8, "indirect_avg": 63.7, "dealer": 9.4, "dealer_avg": 12.1, "read": "strong", "n_avg": 6}, {"date": "2026-10-27", "term": "5-Year Note", "size_bn": 70.0, "yield": 4.845, "yield_chg_bp": -18.8, "btc": 2.33, "btc_avg": 2.31, "indirect": 60.0, "indirect_avg": 64.0, "dealer": 10.6, "dealer_avg": 13.0, "read": "strong", "n_avg": 6}, {"date": "2026-10-26", "term": "2-Year Note", "size_bn": 69.0, "yield": 4.708, "yield_chg_bp": -7.9, "btc": 2.59, "btc_avg": 2.64, "indirect": 45.7, "indirect_avg": 58.3, "dealer": 13.0, "dealer_avg": 11.3, "read": "average", "n_avg": 6}, {"date": "2026-10-22", "term": "5-Year TIPS", "size_bn": 26.0, "yield": 2.367, "yield_chg_bp": 41.2, "btc": 2.41, "btc_avg": 2.52, "indirect": 62.0, "indirect_avg": 67.8, "dealer": 5.5, "dealer_avg": 9.2, "read": "average", "n_avg": 6}, {"date": "2026-10-21", "term": "20-Year Bond (reopening)", "size_bn": 13.0, "yield": 5.469, "yield_chg_bp": 4.9, "btc": 2.73, "btc_avg": 2.62, "indirect": 58.2, "indirect_avg": 65.2, "dealer": 10.3, "dealer_avg": 11.9, "read": "strong", "n_avg": 6}, {"date": "2026-10-08", "term": "30-Year Bond (reopening)", "size_bn": 22.0, "yield": 5.618, "yield_chg_bp": 31.0, "btc": 2.54, "btc_avg": 2.41, "indirect": 72.3, "indirect_avg": 69.1, "dealer": 6.8, "dealer_avg": 10.3, "read": "strong", "n_avg": 6}, {"date": "2026-10-07", "term": "10-Year Note (reopening)", "size_bn": 39.0, "yield": 5.3, "yield_chg_bp": 46.6, "btc": 2.77, "btc_avg": 2.54, "indirect": 80.3, "indirect_avg": 74.1, "dealer": 2.5, "dealer_avg": 8.8, "read": "strong", "n_avg": 6}, {"date": "2026-10-06", "term": "3-Year Note", "size_bn": 58.0, "yield": 4.932, "yield_chg_bp": 45.8, "btc": 2.62, "btc_avg": 2.65, "indirect": 57.6, "indirect_avg": 65.9, "dealer": 10.7, "dealer_avg": 12.6, "read": "average", "n_avg": 6}], "fomc": {"date": "2026-10-28", "decision": "Held \u2192 3.75\u20134%", "vote": "10\u20132 vote", "dissent": "Dissents: Lisa Cook, Beth Hammack (preferred to raise by 1/4 percentage point)", "lines": [[["eq", "The Committee decided to"], ["del", "raise"], ["add", "maintain"], ["eq", "the target range for the federal funds rate"], ["del", "by 1/4 percentage point to"], ["add", "at"], ["eq", "3-3/4 to 4 percent, in support of the Federal Reserve's dual mandate."]], null, [["eq", "Economic activity is expanding at a"], ["del", "solid"], ["add", "strong"], ["eq", "pace."]], null, [["del", "Today's"], ["add", "The accumulation of more information will help the Committee determine the"], ["eq", "policy"], ["del", "action will support"], ["add", "stance appropriate to ensure"], ["eq", "a"], ["del", "timelier"], ["add", "timely"], ["eq", "return"], ["add", "of inflation"], ["eq", "to the Committee's 2 percent goal."]]], "has_previous": true, "read": ["Decision: Hold the federal funds rate at 3.75\u20114%.", "Inflation phrasing now cites \u201cmore information\u201d before action, a dovish tilt toward caution."], "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20261028a.htm"}, "meetings": [{"bank": "FOMC", "country": "US", "date": "2026-12-09T14:00:00-05:00", "note": "Dec 8\u20139 \u00b7 projections"}, {"bank": "FOMC", "country": "US", "date": "2027-01-27T14:00:00-05:00", "note": "Jan 26\u201327"}, {"bank": "FOMC", "country": "US", "date": "2027-03-17T14:00:00-04:00", "note": "Mar 16\u201317 \u00b7 projections"}, {"bank": "FOMC", "country": "US", "date": "2027-04-28T14:00:00-04:00", "note": "Apr 27\u201328"}, {"bank": "FOMC", "country": "US", "date": "2027-06-09T14:00:00-04:00", "note": "Jun 8\u20139 \u00b7 projections"}, {"bank": "FOMC", "country": "US", "date": "2027-07-28T14:00:00-04:00", "note": "Jul 27\u201328"}, {"bank": "FOMC", "country": "US", "date": "2027-09-15T14:00:00-04:00", "note": "Sep 14\u201315 \u00b7 projections"}, {"bank": "FOMC", "country": "US", "date": "2027-10-27T14:00:00-04:00", "note": "Oct 26\u201327"}, {"bank": "FOMC", "country": "US", "date": "2027-12-08T14:00:00-05:00", "note": "Dec 7\u20138 \u00b7 projections"}, {"bank": "BoC", "country": "CA", "date": "2026-12-09T09:45:00-05:00", "note": ""}, {"bank": "BoC", "country": "CA", "date": "2027-01-27T09:45:00-05:00", "note": "with Monetary Policy Report"}, {"bank": "BoC", "country": "CA", "date": "2027-03-03T09:45:00-05:00", "note": ""}, {"bank": "BoC", "country": "CA", "date": "2027-04-28T09:45:00-04:00", "note": "with Monetary Policy Report"}, {"bank": "BoC", "country": "CA", "date": "2027-06-02T09:45:00-04:00", "note": ""}, {"bank": "BoC", "country": "CA", "date": "2027-07-21T09:45:00-04:00", "note": "with Monetary Policy Report"}, {"bank": "BoC", "country": "CA", "date": "2027-09-08T09:45:00-04:00", "note": ""}, {"bank": "BoC", "country": "CA", "date": "2027-10-27T09:45:00-04:00", "note": "with Monetary Policy Report"}, {"bank": "BoC", "country": "CA", "date": "2027-12-08T09:45:00-05:00", "note": ""}, {"bank": "BoE", "country": "UK", "date": "2026-11-05T12:00:00+00:00", "note": "with Monetary Policy Report"}, {"bank": "BoE", "country": "UK", "date": "2026-12-17T12:00:00+00:00", "note": ""}, {"bank": "BoE", "country": "UK", "date": "2027-02-04T12:00:00+00:00", "note": "with Monetary Policy Report"}, {"bank": "BoE", "country": "UK", "date": "2027-03-18T12:00:00+00:00", "note": ""}, {"bank": "BoE", "country": "UK", "date": "2027-04-29T12:00:00+01:00", "note": "with Monetary Policy Report"}, {"bank": "BoE", "country": "UK", "date": "2027-06-17T12:00:00+01:00", "note": ""}, {"bank": "BoE", "country": "UK", "date": "2027-07-29T12:00:00+01:00", "note": "with Monetary Policy Report"}, {"bank": "BoE", "country": "UK", "date": "2027-09-16T12:00:00+01:00", "note": ""}, {"bank": "BoE", "country": "UK", "date": "2027-11-04T12:00:00+00:00", "note": "with Monetary Policy Report"}, {"bank": "BoE", "country": "UK", "date": "2027-12-16T12:00:00+00:00", "note": ""}], "yields": [{"date": "2026-10-30", "3 Mo": 4.16, "2 Yr": 4.56, "5 Yr": 4.71, "10 Yr": 4.94, "30 Yr": 5.31}, {"date": "2026-10-29", "3 Mo": 4.18, "2 Yr": 4.61, "5 Yr": 4.78, "10 Yr": 4.98, "30 Yr": 5.32}, {"date": "2026-10-28", "3 Mo": 4.18, "2 Yr": 4.67, "5 Yr": 4.85, "10 Yr": 5.05, "30 Yr": 5.37}, {"date": "2026-10-27", "3 Mo": 4.22, "2 Yr": 4.7, "5 Yr": 4.82, "10 Yr": 4.99, "30 Yr": 5.3}, {"date": "2026-10-26", "3 Mo": 4.22, "2 Yr": 4.68, "5 Yr": 4.84, "10 Yr": 5.0, "30 Yr": 5.31}, {"date": "2026-10-23", "3 Mo": 4.22, "2 Yr": 4.69, "5 Yr": 4.82, "10 Yr": 5.0, "30 Yr": 5.33}, {"date": "2026-10-22", "3 Mo": 4.22, "2 Yr": 4.65, "5 Yr": 4.78, "10 Yr": 4.96, "30 Yr": 5.29}, {"date": "2026-10-21", "3 Mo": 4.25, "2 Yr": 4.81, "5 Yr": 4.95, "10 Yr": 5.13, "30 Yr": 5.42}, {"date": "2026-10-20", "3 Mo": 4.26, "2 Yr": 4.79, "5 Yr": 4.94, "10 Yr": 5.12, "30 Yr": 5.42}, {"date": "2026-10-19", "3 Mo": 4.27, "2 Yr": 4.77, "5 Yr": 4.94, "10 Yr": 5.15, "30 Yr": 5.48}, {"date": "2026-10-16", "3 Mo": 4.26, "2 Yr": 4.74, "5 Yr": 4.89, "10 Yr": 5.09, "30 Yr": 5.43}, {"date": "2026-10-15", "3 Mo": 4.28, "2 Yr": 4.77, "5 Yr": 4.91, "10 Yr": 5.1, "30 Yr": 5.43}, {"date": "2026-10-14", "3 Mo": 4.28, "2 Yr": 4.82, "5 Yr": 5.0, "10 Yr": 5.19, "30 Yr": 5.52}, {"date": "2026-10-13", "3 Mo": 4.26, "2 Yr": 4.79, "5 Yr": 5.0, "10 Yr": 5.21, "30 Yr": 5.56}, {"date": "2026-10-09", "3 Mo": 4.25, "2 Yr": 4.8, "5 Yr": 5.02, "10 Yr": 5.24, "30 Yr": 5.6}, {"date": "2026-10-08", "3 Mo": 4.23, "2 Yr": 4.75, "5 Yr": 4.99, "10 Yr": 5.22, "30 Yr": 5.6}, {"date": "2026-10-07", "3 Mo": 4.22, "2 Yr": 4.77, "5 Yr": 5.03, "10 Yr": 5.28, "30 Yr": 5.67}, {"date": "2026-10-06", "3 Mo": 4.21, "2 Yr": 4.79, "5 Yr": 5.03, "10 Yr": 5.27, "30 Yr": 5.64}, {"date": "2026-10-05", "3 Mo": 4.22, "2 Yr": 4.84, "5 Yr": 5.06, "10 Yr": 5.31, "30 Yr": 5.66}, {"date": "2026-10-02", "3 Mo": 4.19, "2 Yr": 4.83, "5 Yr": 5.06, "10 Yr": 5.28, "30 Yr": 5.63}, {"date": "2026-10-01", "3 Mo": 4.17, "2 Yr": 4.78, "5 Yr": 5.01, "10 Yr": 5.24, "30 Yr": 5.61}, {"date": "2026-09-30", "3 Mo": 4.2, "2 Yr": 4.88, "5 Yr": 5.09, "10 Yr": 5.29, "30 Yr": 5.64}, {"date": "2026-09-29", "3 Mo": 4.25, "2 Yr": 4.89, "5 Yr": 5.06, "10 Yr": 5.26, "30 Yr": 5.59}, {"date": "2026-09-28", "3 Mo": 4.28, "2 Yr": 4.92, "5 Yr": 5.06, "10 Yr": 5.24, "30 Yr": 5.56}, {"date": "2026-09-25", "3 Mo": 4.24, "2 Yr": 4.81, "5 Yr": 4.98, "10 Yr": 5.17, "30 Yr": 5.49}, {"date": "2026-09-24", "3 Mo": 4.24, "2 Yr": 4.87, "5 Yr": 5.03, "10 Yr": 5.18, "30 Yr": 5.47}, {"date": "2026-09-23", "3 Mo": 4.19, "2 Yr": 4.85, "5 Yr": 4.99, "10 Yr": 5.11, "30 Yr": 5.4}, {"date": "2026-09-22", "3 Mo": 4.16, "2 Yr": 4.71, "5 Yr": 4.83, "10 Yr": 4.96, "30 Yr": 5.29}, {"date": "2026-09-21", "3 Mo": 4.17, "2 Yr": 4.76, "5 Yr": 4.83, "10 Yr": 4.96, "30 Yr": 5.29}, {"date": "2026-09-18", "3 Mo": 4.14, "2 Yr": 4.76, "5 Yr": 4.86, "10 Yr": 5.01, "30 Yr": 5.34}, {"date": "2026-09-17", "3 Mo": 4.12, "2 Yr": 4.67, "5 Yr": 4.78, "10 Yr": 4.94, "30 Yr": 5.29}, {"date": "2026-09-16", "3 Mo": 4.14, "2 Yr": 4.74, "5 Yr": 4.86, "10 Yr": 5.01, "30 Yr": 5.35}, {"date": "2026-09-15", "3 Mo": 4.11, "2 Yr": 4.67, "5 Yr": 4.83, "10 Yr": 5.0, "30 Yr": 5.36}, {"date": "2026-09-14", "3 Mo": 4.11, "2 Yr": 4.65, "5 Yr": 4.8, "10 Yr": 4.97, "30 Yr": 5.34}, {"date": "2026-09-11", "3 Mo": 4.07, "2 Yr": 4.63, "5 Yr": 4.78, "10 Yr": 4.96, "30 Yr": 5.35}, {"date": "2026-09-10", "3 Mo": 4.0, "2 Yr": 4.56, "5 Yr": 4.75, "10 Yr": 4.95, "30 Yr": 5.37}, {"date": "2026-09-09", "3 Mo": 3.95, "2 Yr": 4.43, "5 Yr": 4.61, "10 Yr": 4.83, "30 Yr": 5.28}, {"date": "2026-09-08", "3 Mo": 3.94, "2 Yr": 4.39, "5 Yr": 4.57, "10 Yr": 4.8, "30 Yr": 5.25}, {"date": "2026-09-04", "3 Mo": 3.91, "2 Yr": 4.37, "5 Yr": 4.54, "10 Yr": 4.78, "30 Yr": 5.24}, {"date": "2026-09-03", "3 Mo": 3.89, "2 Yr": 4.34, "5 Yr": 4.52, "10 Yr": 4.77, "30 Yr": 5.25}, {"date": "2026-09-02", "3 Mo": 3.92, "2 Yr": 4.39, "5 Yr": 4.54, "10 Yr": 4.79, "30 Yr": 5.27}, {"date": "2026-09-01", "3 Mo": 3.92, "2 Yr": 4.39, "5 Yr": 4.55, "10 Yr": 4.79, "30 Yr": 5.27}, {"date": "2026-08-31", "3 Mo": 3.91, "2 Yr": 4.34, "5 Yr": 4.49, "10 Yr": 4.75, "30 Yr": 5.25}, {"date": "2026-08-28", "3 Mo": 3.9, "2 Yr": 4.34, "5 Yr": 4.48, "10 Yr": 4.73, "30 Yr": 5.22}, {"date": "2026-08-27", "3 Mo": 3.84, "2 Yr": 4.2, "5 Yr": 4.38, "10 Yr": 4.67, "30 Yr": 5.19}, {"date": "2026-08-26", "3 Mo": 3.85, "2 Yr": 4.19, "5 Yr": 4.37, "10 Yr": 4.66, "30 Yr": 5.18}, {"date": "2026-08-25", "3 Mo": 3.86, "2 Yr": 4.17, "5 Yr": 4.35, "10 Yr": 4.64, "30 Yr": 5.17}, {"date": "2026-08-24", "3 Mo": 3.87, "2 Yr": 4.24, "5 Yr": 4.41, "10 Yr": 4.7, "30 Yr": 5.23}, {"date": "2026-08-21", "3 Mo": 3.88, "2 Yr": 4.24, "5 Yr": 4.43, "10 Yr": 4.74, "30 Yr": 5.27}, {"date": "2026-08-20", "3 Mo": 3.87, "2 Yr": 4.19, "5 Yr": 4.39, "10 Yr": 4.69, "30 Yr": 5.23}, {"date": "2026-08-19", "3 Mo": 3.86, "2 Yr": 4.19, "5 Yr": 4.35, "10 Yr": 4.65, "30 Yr": 5.19}, {"date": "2026-08-18", "3 Mo": 3.86, "2 Yr": 4.19, "5 Yr": 4.37, "10 Yr": 4.71, "30 Yr": 5.28}, {"date": "2026-08-17", "3 Mo": 3.87, "2 Yr": 4.19, "5 Yr": 4.38, "10 Yr": 4.72, "30 Yr": 5.31}, {"date": "2026-08-14", "3 Mo": 3.86, "2 Yr": 4.17, "5 Yr": 4.36, "10 Yr": 4.68, "30 Yr": 5.25}, {"date": "2026-08-13", "3 Mo": 3.87, "2 Yr": 4.15, "5 Yr": 4.32, "10 Yr": 4.63, "30 Yr": 5.21}, {"date": "2026-08-12", "3 Mo": 3.87, "2 Yr": 4.2, "5 Yr": 4.38, "10 Yr": 4.68, "30 Yr": 5.24}, {"date": "2026-08-11", "3 Mo": 3.89, "2 Yr": 4.22, "5 Yr": 4.39, "10 Yr": 4.7, "30 Yr": 5.24}, {"date": "2026-08-10", "3 Mo": 3.89, "2 Yr": 4.25, "5 Yr": 4.41, "10 Yr": 4.72, "30 Yr": 5.25}, {"date": "2026-08-07", "3 Mo": 3.87, "2 Yr": 4.19, "5 Yr": 4.35, "10 Yr": 4.65, "30 Yr": 5.19}, {"date": "2026-08-06", "3 Mo": 3.9, "2 Yr": 4.25, "5 Yr": 4.4, "10 Yr": 4.69, "30 Yr": 5.22}, {"date": "2026-08-05", "3 Mo": 3.89, "2 Yr": 4.18, "5 Yr": 4.33, "10 Yr": 4.63, "30 Yr": 5.17}, {"date": "2026-08-04", "3 Mo": 3.89, "2 Yr": 4.2, "5 Yr": 4.33, "10 Yr": 4.63, "30 Yr": 5.18}, {"date": "2026-08-03", "3 Mo": 3.91, "2 Yr": 4.25, "5 Yr": 4.4, "10 Yr": 4.7, "30 Yr": 5.23}, {"date": "2026-07-31", "3 Mo": 3.83, "2 Yr": 4.28, "5 Yr": 4.45, "10 Yr": 4.75, "30 Yr": 5.27}, {"date": "2026-07-30", "3 Mo": 3.82, "2 Yr": 4.23, "5 Yr": 4.38, "10 Yr": 4.68, "30 Yr": 5.21}], "tenors": ["3 Mo", "2 Yr", "5 Yr", "10 Yr", "30 Yr"], "charts": [{"country": "US", "title": "Nonfarm payrolls", "unit": "k", "kind": "bar", "match": ["Non-Farm"], "series": [{"name": "Monthly change", "points": [["2023-10-01", 159.0], ["2023-11-01", 127.0], ["2023-12-01", 154.0], ["2024-01-01", 175.0], ["2024-02-01", 206.0], ["2024-03-01", 228.0], ["2024-04-01", 64.0], ["2024-05-01", 78.0], ["2024-06-01", 87.0], ["2024-07-01", 53.0], ["2024-08-01", 9.0], ["2024-09-01", 155.0], ["2024-10-01", 33.0], ["2024-11-01", 134.0], ["2024-12-01", 237.0], ["2025-01-01", -48.0], ["2025-02-01", 42.0], ["2025-03-01", 67.0], ["2025-04-01", 108.0], ["2025-05-01", 13.0], ["2025-06-01", -20.0], ["2025-07-01", 64.0], ["2025-08-01", -70.0], ["2025-09-01", 76.0], ["2025-10-01", -140.0], ["2025-11-01", 41.0], ["2025-12-01", -17.0], ["2026-01-01", 160.0], ["2026-02-01", -156.0], ["2026-03-01", 214.0], ["2026-04-01", 148.0], ["2026-05-01", 63.0], ["2026-06-01", 31.0], ["2026-07-01", -10.0], ["2026-08-01", 133.0], ["2026-09-01", 29.0]]}]}, {"country": "US", "title": "Unemployment rate", "unit": "%", "kind": "line", "match": ["Unemployment Rate"], "series": [{"name": "Rate", "points": [["2023-10-01", 3.9], ["2023-11-01", 3.7], ["2023-12-01", 3.8], ["2024-01-01", 3.7], ["2024-02-01", 3.9], ["2024-03-01", 3.9], ["2024-04-01", 3.9], ["2024-05-01", 3.9], ["2024-06-01", 4.1], ["2024-07-01", 4.2], ["2024-08-01", 4.2], ["2024-09-01", 4.1], ["2024-10-01", 4.1], ["2024-11-01", 4.2], ["2024-12-01", 4.1], ["2025-01-01", 4.0], ["2025-02-01", 4.2], ["2025-03-01", 4.2], ["2025-04-01", 4.2], ["2025-05-01", 4.3], ["2025-06-01", 4.1], ["2025-07-01", 4.3], ["2025-08-01", 4.3], ["2025-09-01", 4.4], ["2025-11-01", 4.5], ["2025-12-01", 4.4], ["2026-01-01", 4.3], ["2026-02-01", 4.4], ["2026-03-01", 4.3], ["2026-04-01", 4.3], ["2026-05-01", 4.3], ["2026-06-01", 4.2], ["2026-07-01", 4.1], ["2026-08-01", 4.1], ["2026-09-01", 4.2]]}]}, {"country": "US", "title": "CPI inflation, y/y", "unit": "%", "kind": "line", "match": ["CPI"], "series": [{"name": "Headline", "points": [["2023-10-01", 3.25], ["2023-11-01", 3.13], ["2023-12-01", 3.32], ["2024-01-01", 3.09], ["2024-02-01", 3.16], ["2024-03-01", 3.49], ["2024-04-01", 3.36], ["2024-05-01", 3.24], ["2024-06-01", 2.97], ["2024-07-01", 2.94], ["2024-08-01", 2.61], ["2024-09-01", 2.43], ["2024-10-01", 2.58], ["2024-11-01", 2.72], ["2024-12-01", 2.87], ["2025-01-01", 2.99], ["2025-02-01", 2.8], ["2025-03-01", 2.38], ["2025-04-01", 2.33], ["2025-05-01", 2.38], ["2025-06-01", 2.68], ["2025-07-01", 2.74], ["2025-08-01", 2.94], ["2025-09-01", 3.02], ["2025-11-01", 2.99], ["2025-12-01", 3.0], ["2026-01-01", 2.83], ["2026-02-01", 2.66], ["2026-03-01", 3.32], ["2026-04-01", 3.95], ["2026-05-01", 4.27], ["2026-06-01", 3.73], ["2026-07-01", 3.54], ["2026-08-01", 3.71], ["2026-09-01", 4.02]]}, {"name": "Core", "points": [["2023-10-01", 4.03], ["2023-11-01", 4.02], ["2023-12-01", 3.92], ["2024-01-01", 3.86], ["2024-02-01", 3.76], ["2024-03-01", 3.82], ["2024-04-01", 3.63], ["2024-05-01", 3.39], ["2024-06-01", 3.27], ["2024-07-01", 3.23], ["2024-08-01", 3.29], ["2024-09-01", 3.28], ["2024-10-01", 3.3], ["2024-11-01", 3.29], ["2024-12-01", 3.21], ["2025-01-01", 3.28], ["2025-02-01", 3.14], ["2025-03-01", 2.81], ["2025-04-01", 2.78], ["2025-05-01", 2.77], ["2025-06-01", 2.91], ["2025-07-01", 3.05], ["2025-08-01", 3.11], ["2025-09-01", 3.02], ["2025-11-01", 2.89], ["2025-12-01", 2.84], ["2026-01-01", 2.95], ["2026-02-01", 2.73], ["2026-03-01", 2.67], ["2026-04-01", 2.99], ["2026-05-01", 2.96], ["2026-06-01", 2.81], ["2026-07-01", 2.79], ["2026-08-01", 2.76], ["2026-09-01", 2.79]]}]}, {"country": "US", "title": "Retail sales, m/m", "unit": "%", "kind": "bar", "match": ["Retail Sales"], "series": [{"name": "Monthly change", "points": [["2023-10-01", -0.49], ["2023-11-01", -0.21], ["2023-12-01", 0.08], ["2024-01-01", -0.95], ["2024-02-01", 0.61], ["2024-03-01", -0.04], ["2024-04-01", 0.08], ["2024-05-01", 0.42], ["2024-06-01", -0.24], ["2024-07-01", 1.14], ["2024-08-01", -0.44], ["2024-09-01", 0.8], ["2024-10-01", 0.86], ["2024-11-01", 0.57], ["2024-12-01", 0.89], ["2025-01-01", -0.68], ["2025-02-01", -0.48], ["2025-03-01", 1.61], ["2025-04-01", 0.1], ["2025-05-01", -1.43], ["2025-06-01", 0.93], ["2025-07-01", 0.92], ["2025-08-01", 0.3], ["2025-09-01", 0.08], ["2025-10-01", -0.02], ["2025-11-01", 0.67], ["2025-12-01", 0.11], ["2026-01-01", -0.62], ["2026-02-01", 0.87], ["2026-03-01", 1.66], ["2026-04-01", 0.59], ["2026-05-01", 1.04], ["2026-06-01", 0.2], ["2026-07-01", -0.41], ["2026-08-01", 1.29], ["2026-09-01", 0.77]]}]}, {"country": "US", "title": "Real GDP, q/q annualised", "unit": "%", "kind": "bar", "match": ["GDP"], "series": [{"name": "Quarterly", "points": [["2023-10-01", 3.6], ["2024-01-01", 1.4], ["2024-04-01", 3.6], ["2024-07-01", 3.2], ["2024-10-01", 2.4], ["2025-01-01", 0.1], ["2025-04-01", 4.0], ["2025-07-01", 3.9], ["2025-10-01", 0.2], ["2026-01-01", 2.5], ["2026-04-01", 2.2], ["2026-07-01", 3.4]]}]}, {"country": "US", "title": "Fed funds rate (upper)", "unit": "%", "kind": "line", "match": ["Federal Funds Rate"], "series": [{"name": "Rate", "points": [["2023-10-01", 5.5], ["2023-11-01", 5.5], ["2023-12-01", 5.5], ["2024-01-01", 5.5], ["2024-02-01", 5.5], ["2024-03-01", 5.5], ["2024-04-01", 5.5], ["2024-05-01", 5.5], ["2024-06-01", 5.5], ["2024-07-01", 5.5], ["2024-08-01", 5.5], ["2024-09-01", 5.0], ["2024-10-01", 5.0], ["2024-11-01", 4.75], ["2024-12-01", 4.5], ["2025-01-01", 4.5], ["2025-02-01", 4.5], ["2025-03-01", 4.5], ["2025-04-01", 4.5], ["2025-05-01", 4.5], ["2025-06-01", 4.5], ["2025-07-01", 4.5], ["2025-08-01", 4.5], ["2025-09-01", 4.25], ["2025-10-01", 4.0], ["2025-11-01", 4.0], ["2025-12-01", 3.75], ["2026-01-01", 3.75], ["2026-02-01", 3.75], ["2026-03-01", 3.75], ["2026-04-01", 3.75], ["2026-05-01", 3.75], ["2026-06-01", 3.75], ["2026-07-01", 3.75], ["2026-08-01", 3.75], ["2026-09-01", 4.0], ["2026-10-01", 4.0]]}]}, {"country": "CA", "title": "Employment change", "unit": "k", "kind": "bar", "match": ["Employment Change"], "series": [{"name": "Monthly change", "points": [["2023-10-01", 28.7], ["2023-11-01", 20.4], ["2023-12-01", 8.4], ["2024-01-01", 21.5], ["2024-02-01", 41.7], ["2024-03-01", 27.0], ["2024-04-01", 54.1], ["2024-05-01", 32.3], ["2024-06-01", 0.9], ["2024-07-01", 17.0], ["2024-08-01", 35.3], ["2024-09-01", 35.6], ["2024-10-01", 8.9], ["2024-11-01", 37.1], ["2024-12-01", 92.7], ["2025-01-01", 52.2], ["2025-02-01", -1.4], ["2025-03-01", -21.2], ["2025-04-01", 2.4], ["2025-05-01", 7.7], ["2025-06-01", 66.3], ["2025-07-01", -22.4], ["2025-08-01", -61.7], ["2025-09-01", 53.3], ["2025-10-01", 73.7], ["2025-11-01", 52.3], ["2025-12-01", 10.1], ["2026-01-01", -24.8], ["2026-02-01", -83.9], ["2026-03-01", 14.1], ["2026-04-01", -17.7], ["2026-05-01", 87.8], ["2026-06-01", 18.2], ["2026-07-01", 75.1], ["2026-08-01", -41.7], ["2026-09-01", -68.3]]}]}, {"country": "CA", "title": "Unemployment rate", "unit": "%", "kind": "line", "match": ["Unemployment Rate"], "series": [{"name": "Rate", "points": [["2023-10-01", 5.7], ["2023-11-01", 5.8], ["2023-12-01", 5.8], ["2024-01-01", 5.7], ["2024-02-01", 5.9], ["2024-03-01", 6.1], ["2024-04-01", 6.2], ["2024-05-01", 6.3], ["2024-06-01", 6.4], ["2024-07-01", 6.4], ["2024-08-01", 6.6], ["2024-09-01", 6.5], ["2024-10-01", 6.6], ["2024-11-01", 7.0], ["2024-12-01", 6.7], ["2025-01-01", 6.7], ["2025-02-01", 6.6], ["2025-03-01", 6.8], ["2025-04-01", 6.9], ["2025-05-01", 7.0], ["2025-06-01", 6.9], ["2025-07-01", 6.9], ["2025-08-01", 7.1], ["2025-09-01", 7.1], ["2025-10-01", 6.9], ["2025-11-01", 6.6], ["2025-12-01", 6.8], ["2026-01-01", 6.5], ["2026-02-01", 6.7], ["2026-03-01", 6.7], ["2026-04-01", 6.9], ["2026-05-01", 6.6], ["2026-06-01", 6.5], ["2026-07-01", 6.4], ["2026-08-01", 6.4], ["2026-09-01", 6.5]]}]}, {"country": "CA", "title": "CPI inflation, y/y", "unit": "%", "kind": "line", "match": ["CPI"], "series": [{"name": "Headline", "points": [["2023-10-01", 3.12], ["2023-11-01", 3.12], ["2023-12-01", 3.4], ["2024-01-01", 2.86], ["2024-02-01", 2.78], ["2024-03-01", 2.9], ["2024-04-01", 2.69], ["2024-05-01", 2.87], ["2024-06-01", 2.67], ["2024-07-01", 2.53], ["2024-08-01", 1.95], ["2024-09-01", 1.64], ["2024-10-01", 2.02], ["2024-11-01", 1.89], ["2024-12-01", 1.83], ["2025-01-01", 1.9], ["2025-02-01", 2.64], ["2025-03-01", 2.32], ["2025-04-01", 1.74], ["2025-05-01", 1.73], ["2025-06-01", 1.86], ["2025-07-01", 1.73], ["2025-08-01", 1.85], ["2025-09-01", 2.36], ["2025-10-01", 2.16], ["2025-11-01", 2.22], ["2025-12-01", 2.36], ["2026-01-01", 2.29], ["2026-02-01", 1.78], ["2026-03-01", 2.39], ["2026-04-01", 2.82], ["2026-05-01", 3.23], ["2026-06-01", 2.8], ["2026-07-01", 3.03], ["2026-08-01", 3.03], ["2026-09-01", 3.09]]}]}, {"country": "CA", "title": "GDP, m/m", "unit": "%", "kind": "bar", "match": ["GDP"], "series": [{"name": "Monthly change", "points": [["2023-10-01", 0.11], ["2023-11-01", 0.26], ["2023-12-01", -0.12], ["2024-01-01", 0.27], ["2024-02-01", 0.61], ["2024-03-01", 0.04], ["2024-04-01", 0.36], ["2024-05-01", 0.15], ["2024-06-01", 0.22], ["2024-07-01", 0.2], ["2024-08-01", 0.12], ["2024-09-01", 0.27], ["2024-10-01", 0.41], ["2024-11-01", -0.2], ["2024-12-01", 0.2], ["2025-01-01", 0.55], ["2025-02-01", -0.16], ["2025-03-01", 0.19], ["2025-04-01", -0.09], ["2025-05-01", -0.15], ["2025-06-01", -0.07], ["2025-07-01", 0.65], ["2025-08-01", -0.06], ["2025-09-01", 0.24], ["2025-10-01", -0.29], ["2025-11-01", 0.09], ["2025-12-01", 0.1], ["2026-01-01", -0.02], ["2026-02-01", 0.16], ["2026-03-01", -0.15], ["2026-04-01", 0.63], ["2026-05-01", 0.34], ["2026-06-01", 0.35], ["2026-07-01", 0.03], ["2026-08-01", -0.01]]}]}, {"country": "CA", "title": "BoC overnight rate", "unit": "%", "kind": "line", "match": ["Overnight Rate"], "series": [{"name": "Rate", "points": [["2023-10-01", 5.0], ["2023-11-01", 5.0], ["2023-12-01", 5.0], ["2024-01-01", 5.0], ["2024-02-01", 5.0], ["2024-03-01", 5.0], ["2024-04-01", 5.0], ["2024-05-01", 5.0], ["2024-06-01", 4.75], ["2024-07-01", 4.5], ["2024-08-01", 4.5], ["2024-09-01", 4.25], ["2024-10-01", 3.75], ["2024-11-01", 3.75], ["2024-12-01", 3.25], ["2025-01-01", 3.0], ["2025-02-01", 3.0], ["2025-03-01", 2.75], ["2025-04-01", 2.75], ["2025-05-01", 2.75], ["2025-06-01", 2.75], ["2025-07-01", 2.75], ["2025-08-01", 2.75], ["2025-09-01", 2.5], ["2025-10-01", 2.25], ["2025-11-01", 2.25], ["2025-12-01", 2.25], ["2026-01-01", 2.25], ["2026-02-01", 2.25], ["2026-03-01", 2.25], ["2026-04-01", 2.25], ["2026-05-01", 2.25], ["2026-06-01", 2.25], ["2026-07-01", 2.25], ["2026-08-01", 2.25], ["2026-09-01", 2.25], ["2026-10-01", 2.5]]}]}, {"country": "UK", "title": "CPI inflation, y/y", "unit": "%", "kind": "line", "match": ["CPI"], "series": [{"name": "Headline", "points": [["2023-10-01", 4.6], ["2023-11-01", 3.9], ["2023-12-01", 4.0], ["2024-01-01", 4.0], ["2024-02-01", 3.4], ["2024-03-01", 3.2], ["2024-04-01", 2.3], ["2024-05-01", 2.0], ["2024-06-01", 2.0], ["2024-07-01", 2.2], ["2024-08-01", 2.2], ["2024-09-01", 1.7], ["2024-10-01", 2.3], ["2024-11-01", 2.6], ["2024-12-01", 2.5], ["2025-01-01", 3.0], ["2025-02-01", 2.8], ["2025-03-01", 2.6], ["2025-04-01", 3.5], ["2025-05-01", 3.4], ["2025-06-01", 3.6], ["2025-07-01", 3.8], ["2025-08-01", 3.8], ["2025-09-01", 3.8], ["2025-10-01", 3.6], ["2025-11-01", 3.2], ["2025-12-01", 3.4], ["2026-01-01", 3.0], ["2026-02-01", 3.0], ["2026-03-01", 3.3], ["2026-04-01", 2.8], ["2026-05-01", 2.8], ["2026-06-01", 2.6], ["2026-07-01", 2.9], ["2026-08-01", 3.1], ["2026-09-01", 3.5]]}, {"name": "Core", "points": [["2023-10-01", 5.7], ["2023-11-01", 5.1], ["2023-12-01", 5.1], ["2024-01-01", 5.1], ["2024-02-01", 4.5], ["2024-03-01", 4.2], ["2024-04-01", 3.9], ["2024-05-01", 3.5], ["2024-06-01", 3.5], ["2024-07-01", 3.3], ["2024-08-01", 3.6], ["2024-09-01", 3.2], ["2024-10-01", 3.3], ["2024-11-01", 3.5], ["2024-12-01", 3.2], ["2025-01-01", 3.7], ["2025-02-01", 3.5], ["2025-03-01", 3.4], ["2025-04-01", 3.8], ["2025-05-01", 3.5], ["2025-06-01", 3.7], ["2025-07-01", 3.8], ["2025-08-01", 3.6], ["2025-09-01", 3.5], ["2025-10-01", 3.4], ["2025-11-01", 3.2], ["2025-12-01", 3.2], ["2026-01-01", 3.1], ["2026-02-01", 3.2], ["2026-03-01", 3.1], ["2026-04-01", 2.5], ["2026-05-01", 2.6], ["2026-06-01", 2.6], ["2026-07-01", 2.6], ["2026-08-01", 2.6], ["2026-09-01", 2.8]]}]}, {"country": "UK", "title": "Unemployment rate", "unit": "%", "kind": "line", "match": ["Unemployment Rate"], "series": [{"name": "Rate", "points": [["2023-10-01", 4.0], ["2023-11-01", 3.9], ["2023-12-01", 4.1], ["2024-01-01", 4.2], ["2024-02-01", 4.3], ["2024-03-01", 4.4], ["2024-04-01", 4.4], ["2024-05-01", 4.2], ["2024-06-01", 4.2], ["2024-07-01", 4.1], ["2024-08-01", 4.3], ["2024-09-01", 4.2], ["2024-10-01", 4.4], ["2024-11-01", 4.4], ["2024-12-01", 4.4], ["2025-01-01", 4.5], ["2025-02-01", 4.6], ["2025-03-01", 4.6], ["2025-04-01", 4.7], ["2025-05-01", 4.7], ["2025-06-01", 4.7], ["2025-07-01", 4.8], ["2025-08-01", 5.0], ["2025-09-01", 5.1], ["2025-10-01", 5.1], ["2025-11-01", 5.2], ["2025-12-01", 5.2], ["2026-01-01", 4.9], ["2026-02-01", 5.0], ["2026-03-01", 4.9], ["2026-04-01", 4.9], ["2026-05-01", 4.9], ["2026-06-01", 4.9], ["2026-07-01", 4.7]]}]}, {"country": "UK", "title": "GDP, m/m", "unit": "%", "kind": "bar", "match": ["GDP m/m"], "series": [{"name": "Monthly change", "points": [["2023-10-01", -0.51], ["2023-11-01", 0.51], ["2023-12-01", 0.1], ["2024-01-01", -0.2], ["2024-02-01", 0.71], ["2024-03-01", 0.5], ["2024-04-01", -0.2], ["2024-05-01", 0.4], ["2024-06-01", -0.2], ["2024-07-01", -0.1], ["2024-08-01", 0.3], ["2024-09-01", 0.1], ["2024-10-01", 0.0], ["2024-11-01", 0.0], ["2024-12-01", 0.4], ["2025-01-01", 0.0], ["2025-02-01", 0.4], ["2025-03-01", 0.1], ["2025-04-01", -0.2], ["2025-05-01", -0.2], ["2025-06-01", 0.4], ["2025-07-01", 0.0], ["2025-08-01", -0.1], ["2025-09-01", 0.1], ["2025-10-01", -0.2], ["2025-11-01", 0.1], ["2025-12-01", 0.2], ["2026-01-01", 0.0], ["2026-02-01", 0.49], ["2026-03-01", 0.49], ["2026-04-01", -0.1], ["2026-05-01", 0.0], ["2026-06-01", 0.39], ["2026-07-01", 0.39], ["2026-08-01", 0.1]]}]}, {"country": "UK", "title": "Bank Rate", "unit": "%", "kind": "line", "match": ["Official Bank Rate"], "series": [{"name": "Rate", "points": [["2023-10-01", 5.25], ["2023-11-01", 5.25], ["2023-12-01", 5.25], ["2024-01-01", 5.25], ["2024-02-01", 5.25], ["2024-03-01", 5.25], ["2024-04-01", 5.25], ["2024-05-01", 5.25], ["2024-06-01", 5.25], ["2024-07-01", 5.25], ["2024-08-01", 5.0], ["2024-09-01", 5.0], ["2024-10-01", 5.0], ["2024-11-01", 4.75], ["2024-12-01", 4.75], ["2025-01-01", 4.75], ["2025-02-01", 4.5], ["2025-03-01", 4.5], ["2025-04-01", 4.5], ["2025-05-01", 4.25], ["2025-06-01", 4.25], ["2025-07-01", 4.25], ["2025-08-01", 4.0], ["2025-09-01", 4.0], ["2025-10-01", 4.0], ["2025-11-01", 4.0], ["2025-12-01", 3.75], ["2026-01-01", 3.75], ["2026-02-01", 3.75], ["2026-03-01", 3.75], ["2026-04-01", 3.75], ["2026-05-01", 3.75], ["2026-06-01", 3.75], ["2026-07-01", 3.75], ["2026-08-01", 3.75], ["2026-09-01", 3.75], ["2026-10-01", 3.75]]}]}], "curve": {"asof": "2026-10-30", "days": 251, "tenors": ["1 Yr", "2 Yr", "3 Yr", "5 Yr", "7 Yr", "10 Yr", "20 Yr", "30 Yr"], "explained": [0.8691, 0.0979, 0.0137], "vol": [11.57, 3.89, 1.45], "loadings": [[0.2399, 0.3764, 0.3933, 0.4118, 0.4004, 0.3678, 0.3185, 0.2817], [-0.4429, -0.4254, -0.3027, -0.062, 0.0871, 0.2406, 0.464, 0.4966], [-0.7736, -0.041, 0.4031, 0.2697, 0.161, 0.0521, -0.2091, -0.3038]], "macro": {"bias": 1, "notes": ["Fed funds 4.00% (+0.25 over 6 months): hiking cycle, which historically flattens the curve as the front end reprices", "CPI 4.0% y/y, up 0.7pt in 6 months: sticky inflation keeps hikes in play", "Unemployment 4.2%, down 0.1pt in 6 months"]}, "candidates": [{"name": "5s30s", "fly": false, "action": "5s30s steepener", "why": "curve flat vs its range", "legs": [{"tenor": "5 Yr", "side": "Buy", "dv01": 0.68}, {"tenor": "30 Yr", "side": "Sell", "dv01": 1.0}], "w": {"30 Yr": 1.0, "5 Yr": -0.6841}, "sell": false, "z": -1.21, "level": 208.8, "mean": 218.2, "sd": 7.8, "half_life": 15.3, "fit": 0.6, "score": 0.72, "history": [210.5, 213.2, 214.5, 214.6, 216.8, 216.6, 218.9, 216.5, 215.3, 216.2, 218.2, 218.5, 220.9, 221.2, 221.3, 223.4, 221.1, 224.2, 220.5, 221.4, 222.9, 223.6, 225.4, 224.3, 224.5, 224.5, 221.4, 223.5, 224.5, 228.5, 228.8, 229.6, 229.9, 229.6, 228.9, 230.2, 228.5, 225.9, 229.3, 228.9, 229.3, 228.8, 230.2, 231.2, 231.5, 228.9, 229.2, 225.5, 225.1, 226.5, 224.5, 221.1, 221.7, 226.9, 225.0, 220.6, 219.3, 218.7, 222.4, 223.0, 225.1, 227.7, 228.0, 228.0, 229.0, 229.2, 227.8, 228.5, 224.9, 225.5, 220.9, 222.1, 219.7, 220.6, 220.3, 222.3, 224.4, 223.1, 223.1, 222.8, 223.9, 222.4, 221.7, 220.9, 219.5, 222.5, 218.2, 222.8, 226.7, 222.6, 225.3, 226.1, 225.7, 223.3, 217.6, 221.7, 220.8, 218.3, 218.1, 213.9, 220.3, 219.4, 219.8, 219.4, 218.5, 218.1, 216.7, 219.8, 220.8, 222.5, 221.5, 221.8, 222.3, 222.2, 225.5, 225.3, 223.9, 221.5, 222.5, 221.1, 222.8, 224.5, 222.4, 221.0, 223.0, 222.0, 222.9, 218.9, 221.1, 220.6, 220.0, 219.6, 221.2, 221.2, 219.5, 220.6, 221.9, 222.5, 222.3, 219.3, 214.9, 216.4, 215.7, 214.1, 216.5, 213.1, 211.7, 211.0, 211.1, 207.5, 209.5, 209.6, 210.9, 209.1, 209.0, 211.1, 208.4, 200.9, 200.6, 201.5, 201.9, 200.7, 202.1, 205.2, 202.8, 204.4, 207.0, 208.6, 211.0, 212.9, 211.2, 212.9, 211.8, 211.1, 213.2, 216.6, 216.2, 213.2, 214.8, 214.1, 213.3, 211.9, 213.0, 211.0, 211.4, 221.1, 221.4, 222.6, 222.0, 221.8, 220.8, 221.0, 221.4, 223.3, 223.7, 224.4, 225.5, 226.7, 231.4, 229.1, 221.4, 222.7, 224.0, 221.3, 219.4, 219.1, 219.4, 215.5, 217.9, 215.7, 216.4, 215.8, 213.4, 212.4, 212.6, 212.1, 208.0, 205.6, 205.6, 202.5, 202.0, 201.5, 198.6, 198.6, 198.6, 202.9, 208.3, 209.9, 212.9, 215.8, 218.3, 216.9, 219.9, 219.9, 222.9, 218.6, 216.6, 214.0, 210.0, 207.1, 208.5, 210.1, 204.1, 203.4, 202.0, 203.3, 199.9, 200.3, 205.2, 205.0, 208.8]}, {"name": "2s30s", "fly": false, "action": "2s30s steepener", "why": "curve flat vs its range", "legs": [{"tenor": "2 Yr", "side": "Buy", "dv01": 0.75}, {"tenor": "30 Yr", "side": "Sell", "dv01": 1.0}], "w": {"30 Yr": 1.0, "2 Yr": -0.7484}, "sell": false, "z": -1.13, "level": 189.7, "mean": 203.4, "sd": 12.1, "half_life": 19.4, "fit": 0.6, "score": 0.68}, {"name": "2s10s", "fly": false, "action": "2s10s steepener", "why": "curve flat vs its range", "legs": [{"tenor": "2 Yr", "side": "Buy", "dv01": 0.98}, {"tenor": "10 Yr", "side": "Sell", "dv01": 1.0}], "w": {"10 Yr": 1.0, "2 Yr": -0.9772}, "sell": false, "z": -0.91, "level": 48.4, "mean": 58.7, "sd": 11.3, "half_life": 24.0, "fit": 0.6, "score": 0.54}, {"name": "5s10s30s fly", "fly": true, "action": "Buy the 10Y belly vs 5Y/30Y wings", "why": "belly cheap", "legs": [{"tenor": "5 Yr", "side": "Sell", "dv01": 0.52}, {"tenor": "10 Yr", "side": "Buy", "dv01": 1.0}, {"tenor": "30 Yr", "side": "Sell", "dv01": 0.55}], "w": {"10 Yr": 1.0, "5 Yr": -0.5175, "30 Yr": -0.5491}, "sell": true, "z": 0.25, "level": -41.3, "mean": -41.9, "sd": 2.1, "half_life": 10.5, "fit": 1.0, "score": 0.25}, {"name": "2s10s30s fly", "fly": true, "action": "Buy the 10Y belly vs 2Y/30Y wings", "why": "belly cheap", "legs": [{"tenor": "2 Yr", "side": "Sell", "dv01": 0.37}, {"tenor": "10 Yr", "side": "Buy", "dv01": 1.0}, {"tenor": "30 Yr", "side": "Sell", "dv01": 0.81}], "w": {"10 Yr": 1.0, "2 Yr": -0.3745, "30 Yr": -0.8053}, "sell": true, "z": 0.24, "level": -104.4, "mean": -105.1, "sd": 3.1, "half_life": 11.3, "fit": 1.0, "score": 0.24}, {"name": "2s5s10s fly", "fly": true, "action": "Sell the 5Y belly vs 2Y/10Y wings", "why": "belly rich", "legs": [{"tenor": "2 Yr", "side": "Buy", "dv01": 0.49}, {"tenor": "5 Yr", "side": "Sell", "dv01": 1.0}, {"tenor": "10 Yr", "side": "Buy", "dv01": 0.61}], "w": {"5 Yr": 1.0, "2 Yr": -0.4934, "10 Yr": -0.6147}, "sell": false, "z": -0.03, "level": -57.6, "mean": -57.6, "sd": 1.7, "half_life": 3.7, "fit": 1.0, "score": 0.03}], "pick": {"name": "5s30s", "conviction": "Low", "hold_weeks": [3, 6], "target": 218.2, "stop": 201.0, "expected_bp": 4.7}}, "headline": {"title": "Treasury Department announces new Series I bond rate of 5.51% for the next six months", "link": "https://www.cnbc.com/2026/10/30/treasury-i-bond-rate-through-april-2027.html", "section": "Top News", "summary": "The U.S. Department of the Treasury has announced new Series I bond rates through April 2027.", "published": "2026-10-30T17:15:53+00:00"}, "trades": [{"week": "2026-W44", "entry_date": "2026-10-26", "name": "2s5s10s fly", "action": "Buy the 5Y belly vs 2Y/10Y wings", "w": {"5 Yr": 1.0, "2 Yr": -0.4936, "10 Yr": -0.6078}, "sell": true, "score": 2.15, "conviction": "High", "z": 2.15, "half_life": 4.4, "hold_weeks": [1, 2], "entry_level": -50.9, "target": -54.6, "stop": -49.2, "marks": {}, "hold_end": "2026-11-09", "status": "open", "now": {"date": "2026-10-30", "bp": 3.4}}, {"week": "2026-W43", "entry_date": "2026-10-22", "name": "5s30s", "action": "5s30s steepener", "w": {"30 Yr": 1.0, "5 Yr": -0.6856}, "sell": false, "score": 1.3, "conviction": "Medium", "z": -2.17, "half_life": 17.1, "hold_weeks": [3, 7], "entry_level": 201.28, "target": 217.7, "stop": 193.7, "marks": {"7d": {"date": "2026-10-29", "bp": 3.0}}, "hold_end": "2026-12-10", "status": "open", "now": {"date": "2026-10-30", "bp": 6.8}}, {"week": "2026-W42", "entry_date": "2026-10-15", "name": "5s30s", "action": "5s30s steepener", "w": {"30 Yr": 1.0, "5 Yr": -0.679}, "sell": false, "score": 0.91, "conviction": "Low", "z": -1.51, "half_life": 15.0, "hold_weeks": [3, 6], "entry_level": 209.61, "target": 220.6, "stop": 202.4, "marks": {"7d": {"date": "2026-10-22", "bp": -5.2}, "14d": {"date": "2026-10-29", "bp": -2.2}}, "hold_end": "2026-11-26", "status": "open", "now": {"date": "2026-10-30", "bp": 1.6}, "touched": {"what": "stop", "date": "2026-10-26"}}, {"week": "2026-W41", "entry_date": "2026-10-09", "name": "2s5s10s fly", "action": "Buy the 5Y belly vs 2Y/10Y wings", "w": {"5 Yr": 1.0, "2 Yr": -0.4927, "10 Yr": -0.6142}, "sell": true, "score": 0.51, "conviction": "Low", "z": 0.51, "half_life": 3.9, "hold_weeks": [1, 2], "entry_level": -56.34, "target": -57.2, "stop": -54.6, "marks": {"7d": {"date": "2026-10-16", "bp": 0.8}, "14d": {"date": "2026-10-23", "bp": -0.2}, "hold": {"date": "2026-10-23", "bp": -0.2}}, "hold_end": "2026-10-23", "status": "closed", "now": {"date": "2026-10-23", "bp": -0.2}, "touched": {"what": "target", "date": "2026-10-15"}}], "summary": {"lines": ["No major economic releases in the next 36\u202fhours; nothing expected to move rates materially.", "Treasury curve: 2\u2011yr 4.56% (-5\u202fbp), 10\u2011yr 4.94% (-4\u202fbp), 30\u2011yr 5.31% (-1\u202fbp); 2s10s +38\u202fbp, steeper by 1\u202fbp d/d.", "Headline: Treasury Dept announces new Series\u202fI bond rate of 5.51% for the next six months."], "model": "openai/gpt-oss-120b", "ms": 1139}};
+const $ = id => document.getElementById(id);
+const fmt = (d, o) => d.toLocaleString(undefined, o);
+const dayKey = d => d.toLocaleDateString("en-CA");
+const now = new Date();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+let state = { c: "all", high: false, tab: "week" };
+try { Object.assign(state, JSON.parse(localStorage.getItem("mw-filter") || "{}")); } catch (e) {}
+
+const events = DATA.events.map(e => ({ ...e, d: new Date(e.date) })).sort((a, b) => a.d - b.d);
+const meetings = DATA.meetings.map(m => ({ ...m, d: new Date(m.date) })).filter(m => m.d > now).sort((a, b) => a.d - b.d);
+
+function until(d) {
+  const ms = d - now, h = Math.floor(ms / 36e5), days = Math.round(ms / 864e5);
+  if (ms < 0) return "done";
+  if (h < 1) return `in ${Math.max(1, Math.round(ms / 6e4))}m`;
+  if (h < 48) return `in ${h}h ${Math.floor(ms / 6e4) % 60}m`;
+  return `in ${days} days`;
+}
+
+function header() {
+  const days = [...new Set(events.map(e => dayKey(e.d)))];
+  if (events.length) {
+    const a = events[0].d, b = events[events.length - 1].d;
+    $("range").textContent = `Week of ${fmt(a, { day: "numeric", month: "short" })} – ${fmt(b, { day: "numeric", month: "short", year: "numeric" })}`;
+  }
+  $("updated").textContent = `Updated ${fmt(new Date(DATA.updated), { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}`;
+
+  const nextEv = events.find(e => e.d > now && e.impact === "High");
+  const nextCb = meetings[0];
+  const pick = [nextEv && { title: `${nextEv.country} · ${nextEv.title}`, d: nextEv.d, sub: nextEv.forecast ? `Forecast ${nextEv.forecast} · previous ${nextEv.previous || "–"}` : "" },
+                nextCb && { title: `${nextCb.bank} rate decision`, d: nextCb.d, sub: nextCb.note }]
+    .filter(Boolean).sort((a, b) => a.d - b.d)[0];
+  $("next").innerHTML = pick
+    ? `<div class="lbl"><span class="eyebrow">Next high-impact</span><span class="when">${until(pick.d)}</span></div>
+       <div class="ttl">${esc(pick.title)}</div>
+       <div class="sub">${fmt(pick.d, { weekday: "long", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}${pick.sub ? " · " + esc(pick.sub) : ""}</div>`
+    : `<div class="eyebrow">Next high-impact</div><div class="ttl">Nothing left this week</div><div class="sub">The new week loads on Sunday.</div>`;
+}
+
+function brief() {
+  const S = DATA.summary;
+  if (!S || !S.lines || !S.lines.length) return;
+  $("brief").innerHTML = `<div class="eyebrow">Today's brief</div><ul>${S.lines.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
+    <div class="sub">AI-written from this page's data (${esc(S.model)} via Groq). Not investment advice.</div>`;
+  $("brief").hidden = false;
+}
+
+function week() {
+  const list = events.filter(e => (state.c === "all" || e.country === state.c) && (!state.high || e.impact === "High"));
+  const groups = new Map();
+  for (const e of events) groups.set(dayKey(e.d), groups.get(dayKey(e.d)) || []);
+  for (const e of list) groups.get(dayKey(e.d)).push(e);
+  const today = dayKey(now);
+  $("week").innerHTML = [...groups].map(([k, evs]) => {
+    const d = new Date(k + "T12:00:00");
+    const rows = evs.length ? evs.map(e => {
+      const S = e.surprise || {}, arr = S.dir === "above" ? "▲" : S.dir === "below" ? "▼" : S.dir === "in line" ? "=" : "";
+      const act = e.actual ? `<span class="act${S.big && S.dir !== "in line" ? " big" : ""}" title="${esc(S.dir ? (S.dir === "in line" ? "In line with forecast" : `${S.dir} forecast by ${S.by}`) : "Actual")}">act <b>${esc(e.actual)}</b> ${arr}${S.big && S.dir !== "in line" ? " ⚡" : ""}</span>` : "";
+      const nums = e.forecast || e.previous || e.actual
+        ? `<span class="nums">fcst <b>${esc(e.forecast || "–")}</b> · prev <b>${esc(e.previous || "–")}</b>${act}</span>` : "";
+      const t = e.impact === "Holiday" ? "All day" : fmt(e.d, { hour: "2-digit", minute: "2-digit" });
+      return `<div class="row ${e.impact}${e.d < now ? " past" : ""}">
+        <span class="t">${t}</span><span class="cc">${e.country}</span>
+        <div class="ev"><span class="name"><span class="dot ${e.impact}"></span>${esc(e.title)}</span>${nums}</div></div>`;
+    }).join("") : `<div class="empty">Nothing matching this filter.</div>`;
+    return `<div class="day"><div class="dayhead"><h3>${fmt(d, { weekday: "long", day: "numeric", month: "short" })}</h3>${k === today ? '<span class="tag">Today</span>' : ""}</div>${rows}</div>`;
+  }).join("") || `<div class="empty">No releases loaded.</div>`;
+}
+
+function banks() {
+  const list = meetings.filter(m => state.c === "all" || m.country === state.c).slice(0, state.c === "all" ? 9 : 4);
+  $("cb").innerHTML = list.map(m => {
+    const days = Math.ceil((m.d - now) / 864e5);
+    return `<div class="cbrow"><span class="d">${fmt(m.d, { day: "numeric", month: "short" })}</span>
+      <span class="bank">${m.bank}</span><span class="n">${fmt(m.d, { hour: "2-digit", minute: "2-digit" })}${m.note ? " · " + esc(m.note) : ""}</span>
+      <span class="away${days <= 7 ? " soon" : ""}">${days <= 1 ? until(m.d) : days + "d"}</span></div>`;
+  }).join("");
+}
+
+function yieldsTable() {
+  const Y = DATA.yields || [], T = DATA.tenors || [];
+  $("ysec").hidden = !Y.length || (state.c !== "all" && state.c !== "US");
+  if (!Y.length) return;
+  const last = Y[0], lastD = new Date(last.date + "T12:00:00");
+  const back = days => Y.find(r => (lastD - new Date(r.date + "T12:00:00")) / 864e5 >= days) || Y[Y.length - 1];
+  const w = back(7), m = back(28);
+  const bp = (a, b) => { const v = Math.round((a - b) * 100); return (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v); };
+  const spark = key => {
+    const v = Y.map(r => r[key]).filter(x => x != null).reverse(), lo = Math.min(...v), hi = Math.max(...v);
+    const W = 64, H = 18, x = i => (i / (v.length - 1)) * (W - 4) + 2, y = a => H - 2 - ((a - lo) / ((hi - lo) || 1)) * (H - 4);
+    return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline class="spark" points="${v.map((a, i) => x(i).toFixed(1) + "," + y(a).toFixed(1)).join(" ")}"/><circle class="spark-end" cx="${x(v.length - 1)}" cy="${y(v[v.length - 1])}" r="2"/></svg>`;
+  };
+  const label = t => t.replace(" Mo", "M").replace(" Yr", "Y");
+  const rows = T.map(t => `<tr><td>${label(t)}</td><td class="lvl">${last[t].toFixed(2)}%</td><td class="chg">${bp(last[t], w[t])}</td><td class="chg">${bp(last[t], m[t])}</td><td>${spark(t)}</td></tr>`);
+  if (T.includes("2 Yr") && T.includes("10 Yr")) {
+    const s = r => r["10 Yr"] - r["2 Yr"];
+    rows.push(`<tr class="spread"><td>2s10s</td><td class="lvl">${Math.round(s(last) * 100)}bp</td><td class="chg">${bp(s(last), s(w))}</td><td class="chg">${bp(s(last), s(m))}</td><td></td></tr>`);
+  }
+  $("yt").innerHTML = `<thead><tr><th>Tenor</th><th>Yield</th><th>1w</th><th>1m</th><th>3m trend</th></tr></thead><tbody>${rows.join("")}</tbody>`;
+  $("yasof").textContent = `Close ${fmt(lastD, { day: "numeric", month: "short" })}`;
+}
+
+const MON = d => new Date(d + "T12:00:00");
+function fmtV(v, unit, signed) {
+  const s = signed && v > 0 ? "+" : v < 0 ? "−" : "", a = Math.abs(v);
+  return unit === "k" ? s + Math.round(a) + "k" : s + a.toFixed(unit === "%" && !signed && Math.round(a * 10) !== a * 10 ? 2 : 1) + "%";
+}
+function niceTicks(lo, hi) {
+  const step = [.1, .2, .25, .5, 1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].find(s => (hi - lo) / s <= 4) || 1000;
+  const t = []; for (let v = Math.floor(lo / step) * step; v < Math.ceil(hi / step) * step + step / 2; v += step) t.push(+v.toFixed(4));
+  return t;
+}
+function chartCard(c, ci) {
+  const S = c.series.filter(s => s.points.length), P = S[0].points, n = P.length, bar = c.kind === "bar";
+  const dates = P.map(p => p[0]), at = S.map(s => new Map(s.points));
+  const vals = S.flatMap(s => s.points.map(p => p[1])).concat(bar ? [0] : []);
+  const ticks = niceTicks(Math.min(...vals), Math.max(...vals)), lo = ticks[0], hi = ticks[ticks.length - 1];
+  const W = 340, H = 130, L = 30, R = 6, T = 6, B = 16, pw = W - L - R, ph = H - T - B;
+  const x = i => L + (bar ? (i + .5) * pw / n : i * pw / (n - 1)), y = v => T + (hi - v) / ((hi - lo) || 1) * ph;
+  let g = ticks.map(t => `<line class="${t === 0 && bar ? "zero" : "grid"}" x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/><text class="ax" x="${L - 4}" y="${y(t) + 3}" text-anchor="end">${t}</text>`).join("");
+  g += dates.map((d, i) => d.slice(5, 7) === "01" ? `<text class="ax" x="${x(i)}" y="${H - 3}" text-anchor="middle">${d.slice(0, 4)}</text>` : "").join("");
+  if (bar) {
+    const bw = Math.max(1, pw / n - 2);
+    g += P.map(([d, v], i) => `<rect class="bar${i === n - 1 ? " last" : ""}" data-i="${i}" x="${(x(i) - bw / 2).toFixed(1)}" width="${bw.toFixed(1)}" y="${Math.min(y(v), y(0)).toFixed(1)}" height="${Math.max(1, Math.abs(y(v) - y(0))).toFixed(1)}" rx="1.5"/>`).join("");
+  } else {
+    g += S.map((s, k) => `<polyline class="ln s${k}" style="fill:none" points="${dates.map((d, i) => at[k].has(d) ? x(i).toFixed(1) + "," + y(at[k].get(d)).toFixed(1) : "").join(" ")}"/>`).join("");
+  }
+  g += `<line class="xh" y1="${T}" y2="${T + ph}" hidden/>`;
+
+  const out = events.filter(e => e.country === c.country && e.impact !== "Holiday" && c.match.some(m => e.title.includes(m)));
+  const nextOut = out.find(e => e.d > now) || out[out.length - 1];
+  const tag = c.stale ? `<span class="tag old">Old data</span>` : nextOut ? `<span class="tag">${nextOut.d > now ? "Out " + (dayKey(nextOut.d) === dayKey(now) ? "today" : fmt(nextOut.d, { weekday: "short" })) : "Out this week"}</span>` : "";
+
+  const last = P[n - 1], ld = MON(last[0]);
+  let cmp;
+  if (bar && c.unit === "k") {
+    const yr = last[0].slice(0, 4), m = last[0].slice(5, 7);
+    const sum = y0 => P.filter(p => p[0].slice(0, 4) === y0 && p[0].slice(5, 7) <= m).reduce((a, p) => a + p[1], 0);
+    cmp = `Jan–${fmt(ld, { month: "short" })} ${yr}: <b>${fmtV(sum(yr), "k", 1)}</b> vs ${fmtV(sum(String(yr - 1)), "k", 1)} same months ${yr - 1}`;
+  } else if (bar) {
+    cmp = `3-year average ${fmtV(P.reduce((a, p) => a + p[1], 0) / n, "%", 1)}`;
+  } else {
+    const ago = dates[dates.findIndex(d => d >= `${ld.getFullYear() - 1}-${last[0].slice(5)}`)];
+    cmp = ago ? `A year earlier: ${S.map((s, k) => (S.length > 1 ? s.name + " " : "") + fmtV(at[k].get(ago), "%")).join(" · ")}` : "";
+  }
+  // Source was down at the last refresh: build.py reused its saved copy, so say how old it is
+  const missed = c.stale && out.some(e => e.d <= now && dayKey(e.d) >= c.stale);
+  const stale = c.stale ? `<div class="stale">Source down at last refresh. Figures below are from ${fmt(MON(c.stale), { weekday: "short", day: "numeric", month: "short" })}${missed ? " and miss this week's new number" : ""}.</div>` : "";
+  return `<article class="chart${c.stale ? " is-stale" : ""}" data-ci="${ci}"><div class="chead"><h3>${c.country} · ${esc(c.title)}</h3>${tag}</div>
+    ${stale}<div class="readout"></div><div class="cmp">${cmp}</div>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(c.title)}, last 3 years">${g}</svg></article>`;
+}
+function charts() {
+  const C = (DATA.charts || []).filter(c => (state.c === "all" || c.country === state.c) && c.series.some(s => s.points.length));
+  $("charts").innerHTML = C.map(c => chartCard(c, DATA.charts.indexOf(c))).join("") || `<div class="empty">No chart data loaded.</div>`;
+  $("charts").querySelectorAll(".chart").forEach(el => {
+    const c = DATA.charts[el.dataset.ci], S = c.series.filter(s => s.points.length), P = S[0].points, n = P.length;
+    const at = S.map(s => new Map(s.points)), svg = el.querySelector("svg"), xh = svg.querySelector(".xh");
+    const show = i => {
+      const d = P[i][0];
+      el.querySelector(".readout").innerHTML = S.map((s, k) => at[k].has(d) ? (S.length > 1 ? `<span class="k s${k}"></span>${esc(s.name)} ` : "") + `<b>${fmtV(at[k].get(d), c.unit, c.kind === "bar")}</b>` : "").join(" ")
+        + ` <span class="cmp">${c.title.includes("q/q") ? `Q${Math.ceil(+d.slice(5, 7) / 3)} ${d.slice(0, 4)}` : fmt(MON(d), { month: "short", year: "numeric" })}</span>`;
+      svg.querySelectorAll(".bar.on").forEach(b => b.classList.remove("on"));
+      svg.querySelector(`.bar[data-i="${i}"]`)?.classList.add("on");
+    };
+    const pick = ev => {
+      const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) / r.width * 340;
+      const i = Math.max(0, Math.min(n - 1, Math.round(c.kind === "bar" ? (px - 30) / (304 / n) - .5 : (px - 30) / (304 / (n - 1)))));
+      const xi = 30 + (c.kind === "bar" ? (i + .5) * 304 / n : i * 304 / (n - 1));
+      xh.setAttribute("x1", xi); xh.setAttribute("x2", xi); xh.removeAttribute("hidden"); show(i);
+    };
+    svg.onpointermove = svg.onpointerdown = pick;
+    svg.onpointerleave = () => { xh.setAttribute("hidden", ""); show(n - 1); };
+    show(n - 1);
+  });
+}
+
+// ---- Curve tab: PCA trade idea (see curve.py) ----
+const ten = t => t.replace(" Yr", "Y");
+const bpS = v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(1);
+function ago(iso) {
+  const h = Math.round((now - new Date(iso)) / 36e5);
+  return h < 1 ? "just now" : h < 48 ? `${h}h ago` : `${Math.round(h / 24)} days ago`;
+}
+// Small interactive line chart: xs are labels, series [{name, cls, vals}], extra = svg drawn under the lines
+function lineChart(id, xs, series, { extra = () => "", fmtY = v => v, label = () => "", step = false } = {}) {
+  const vals = series.flatMap(s => s.vals), ticks = niceTicks(Math.min(...vals), Math.max(...vals));
+  const lo = ticks[0], hi = ticks[ticks.length - 1], n = xs.length;
+  const W = 340, H = 140, L = 34, R = step ? 62 : 6, T = 8, B = 16, pw = W - L - R, ph = H - T - B;
+  const x = i => L + i * pw / (n - 1), y = v => T + (hi - v) / ((hi - lo) || 1) * ph;
+  let g = ticks.map(t => `<line class="grid" x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"/><text class="ax" x="${L - 4}" y="${y(t) + 3}" text-anchor="end">${fmtY(t)}</text>`).join("");
+  g += extra(x, y, L, W - R);
+  g += xs.map((d, i) => label(d, i) ? `<text class="ax" x="${x(i)}" y="${H - 3}" text-anchor="middle">${label(d, i)}</text>` : "").join("");
+  g += series.map(s => `<polyline class="ln ${s.cls}" style="fill:none" points="${s.vals.map((v, i) => x(i).toFixed(1) + "," + y(v).toFixed(1)).join(" ")}"/>`).join("");
+  if (step) g += series.map(s => `<text class="lbl ${s.cls}" style="stroke:none" x="${W - R + 4}" y="${y(s.vals[n - 1]) + 3}">${esc(s.short)}</text>`).join("");
+  g += `<line class="xh" y1="${T}" y2="${T + ph}" hidden/>`;
+  return { svg: `<svg id="${id}" viewBox="0 0 ${W} ${H}" role="img">${g}</svg>`,
+    wire(el, show) {
+      const svg = el.querySelector("#" + id), xh = svg.querySelector(".xh");
+      const pick = ev => {
+        const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) / r.width * W;
+        const i = Math.max(0, Math.min(n - 1, Math.round((px - L) / (pw / (n - 1)))));
+        xh.setAttribute("x1", x(i)); xh.setAttribute("x2", x(i)); xh.removeAttribute("hidden"); show(i);
+      };
+      svg.onpointermove = svg.onpointerdown = pick;
+      svg.onpointerleave = () => { xh.setAttribute("hidden", ""); show(n - 1); };
+      show(n - 1);
+    } };
+}
+
+// Weekly trade log (curve.track): the best idea each week, marked at 7d / 14d / 1m and at the end of its hold
+function trackerHtml() {
+  const L = DATA.trades || [];
+  if (!L.length) return "";
+  const sbp = v => (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toFixed(1);
+  const d = iso => fmt(new Date(iso + "T12:00:00"), { day: "numeric", month: "short" });
+  const cell = (t, k) => t.marks[k] ? `<td>${sbp(t.marks[k].bp)}</td>`
+    : t.status === "open" && t.now ? `<td class="pend" title="to date">${sbp(t.now.bp)}</td>` : `<td class="pend">–</td>`;
+  const closed = L.filter(t => t.marks.hold), wins = closed.filter(t => t.marks.hold.bp > 0).length;
+  const avg = closed.length ? closed.reduce((a, t) => a + t.marks.hold.bp, 0) / closed.length : 0;
+  const rows = L.map(t => `<tr><td class="l">${esc(t.name)}<span class="dt">${esc(t.action.replace(/ vs .*/, ""))} · in ${d(t.entry_date)} · ${t.conviction}</span></td>
+    ${cell(t, "7d")}${cell(t, "14d")}${cell(t, "1m")}
+    <td>${t.marks.hold ? `<b>${sbp(t.marks.hold.bp)}</b>` : t.now ? `<span class="pend">${sbp(t.now.bp)}</span>` : "–"}<span class="dt">${t.hold_weeks[1]}w${t.status === "open" ? " · to " + d(t.hold_end) : ""}</span></td></tr>`
+    + (t.touched ? `<tr class="spread"><td class="l" colspan="5" style="font:400 12px var(--body)">${t.touched.what === "target" ? "Reached target" : "Hit stop"} on ${d(t.touched.date)}</td></tr>` : "")).join("");
+  return `<section style="display:grid;gap:8px" aria-label="Trade tracker"><div class="head2"><h2>Trade tracker</h2><span class="sub">${closed.length ? `${wins}/${closed.length} positive · avg ${sbp(avg)}bp` : "first trades still open"}</span></div>
+    <div style="overflow-x:auto"><table class="yt"><thead><tr><th class="l">Weekly pick</th><th>7d</th><th>14d</th><th>1m</th><th>Hold</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <span class="sub">Each week's highest-score idea, entered at that day's close and held as suggested (the upper end of its hold range). P&amp;L is in bp of the PCA-weighted spread, before carry, roll and costs; $10k DV01 on the reference leg makes ±1bp = ±$10k. Italics are open, to date.</span></section>`;
+}
+
+function curveTab() {
+  const C = DATA.curve, N = DATA.headline;
+  let h = "";
+  if (C) {
+    const p = C.pick, best = C.candidates[0];
+    if (p) {
+      const hl = best.half_life, k = best.fly ? "belly" : best.legs.find(l => l.dv01 === 1).tenor;
+      const legs = best.legs.map(l => `<span class="leg ${l.side}">${l.side} ${ten(l.tenor)} · $${(l.dv01 * 10).toFixed(1)}k</span>`).join("");
+      h += `<section class="card" aria-label="Suggested trade">
+        <div class="head2"><span class="eyebrow">Suggested curve trade</span><span class="tag ${p.conviction}">${p.conviction} conviction</span></div>
+        <div class="ttl">${esc(best.action)}</div>
+        <div class="sub">${best.fly ? "PCA-weighted butterfly: neutral to level and slope, a pure curvature trade" : "PCA-weighted spread: neutral to level, a pure slope trade"}. DV01 per $10k on the ${best.fly ? "belly" : ten(k)}:</div>
+        <div class="legs">${legs}</div>
+        <div class="stats">
+          <div><span class="eyebrow">Now</span><b>${best.level.toFixed(1)}bp</b></div>
+          <div><span class="eyebrow">1y mean</span><b>${best.mean.toFixed(1)}bp</b></div>
+          <div><span class="eyebrow">z-score</span><b>${bpS(best.z)}σ</b></div>
+          <div><span class="eyebrow">Half-life</span><b>${hl.toFixed(0)}d</b></div>
+          <div><span class="eyebrow">Hold</span><b>${p.hold_weeks[0]}–${p.hold_weeks[1]} wk</b></div>
+          <div><span class="eyebrow">Target</span><b>${p.target.toFixed(1)}bp</b></div>
+          <div><span class="eyebrow">Stop</span><b>${p.stop.toFixed(1)}bp</b></div>
+          <div><span class="eyebrow">Exp. 1 HL</span><b>${p.expected_bp.toFixed(1)}bp</b></div>
+        </div>
+        <div class="chart"><div class="readout" id="sp-ro"></div><div id="sp-box"></div></div>
+        <ul class="why">
+          <li>The PCA-weighted ${esc(best.name)} is <b>${Math.abs(best.z).toFixed(1)}σ ${best.z > 0 ? "above" : "below"}</b> its 1-year mean (${esc(best.why)}). Expect it to revert toward the mean: half the gap typically closes in <b>${hl.toFixed(0)} trading days</b>, so hold for one to two half-lives and review if it has not moved by then.</li>
+          <li>Take profit at the mean (${p.target.toFixed(1)}bp); stop out if it stretches another 1σ (${p.stop.toFixed(1)}bp).</li>
+          ${p.conviction === "Low" ? `<li><b>Low conviction:</b> no part of the curve is far from its 1-year range, so the edge is small. Run it small or wait for a z-score beyond ±1.5.</li>` : ""}
+          ${C.macro.notes.map(n => `<li>${esc(n)}</li>`).join("")}
+          ${best.fly ? `<li>Being level- and slope-neutral, the fly should not care which way the Fed moves; that is why the PCA framework favours flies for pure relative value.</li>` : `<li>Macro ${best.fit > 1 ? "supports" : best.fit < 1 ? "works against" : "is neutral for"} this slope trade.</li>`}
+        </ul>
+      </section>`;
+    } else {
+      h += `<section class="card"><span class="eyebrow">Suggested curve trade</span><div class="ttl">No tradable dislocation</div>
+        <div class="sub">None of the PCA-weighted spreads or flies mean-reverts fast enough (half-life under 3 months) to hold. Stay flat on curve until one does.</div></section>`;
+    }
+
+    // all candidates
+    h += `<section style="display:grid;gap:8px"><div class="head2"><h2>Curve scan</h2><span class="sub">PCA-weighted, last ${C.days} days</span></div>
+      <div style="overflow-x:auto"><table class="yt"><thead><tr><th>Trade</th><th>z</th><th>Half-life</th><th>Score</th><th style="text-align:left;padding-left:10px">Signal</th></tr></thead><tbody>
+      ${C.candidates.map((c, i) => `<tr class="${i === 0 && p ? "pick" : ""}"><td>${esc(c.name)}</td><td>${c.z > 0 ? "+" : c.z < 0 ? "−" : ""}${Math.abs(c.z).toFixed(2)}</td><td>${c.half_life == null ? "none" : c.half_life.toFixed(0) + "d"}</td><td>${c.score.toFixed(2)}</td><td class="sig">${esc(c.action)}</td></tr>`).join("")}
+      </tbody></table></div>
+      <span class="sub">Score = |z| × macro fit (1.25 if the Fed cycle favours the slope trade, 0.6 if against; flies are 1). Trades that revert slower than 60 trading days score 0.</span></section>`;
+
+    // PCA loadings
+    const names = ["Level", "Slope", "Curvature"];
+    h += `<section class="card" aria-label="Principal components"><div class="head2"><h2>What moves the curve</h2><span class="sub">daily changes, 1y</span></div>
+      <div class="sub">${names.map((n, i) => `<span class="k s${i}" style="display:inline-block;width:10px;height:2px;vertical-align:middle;margin-right:4px"></span>${n} <b>${(C.explained[i] * 100).toFixed(1)}%</b> (${C.vol[i].toFixed(1)}bp/day)`).join(" · ")}</div>
+      <div class="chart"><div class="readout" id="pc-ro"></div><div id="pc-box"></div></div>
+      <div class="sub">How much each tenor moves (loading) when a factor moves by one unit. Hedge ratios above come from these loadings.</div></section>`;
+  }
+
+  if (N) {
+    h += `<section class="card" aria-label="Top rates story"><span class="eyebrow">CNBC · ${esc(N.section)} · ${ago(N.published)}</span>
+      <a class="news" href="${esc(N.link)}" target="_blank" rel="noopener">${esc(N.title)}</a>
+      ${N.summary ? `<div class="sub">${esc(N.summary)}</div>` : ""}</section>`;
+  }
+
+  h += `<section class="note"><h2>Method</h2>
+    <p>Follows the Salomon Brothers principal components approach to the yield curve. Three factors (level, slope and curvature) explain almost all Treasury curve moves, so trades are weighted with the PCA loadings rather than equal DV01: a two-leg spread is hedged to be level-neutral (a pure slope view), and a butterfly is hedged to be level- and slope-neutral (a pure curvature view).</p>
+    <p>Curvature, and to a lesser extent slope, mean-reverts. Each PCA-weighted spread is z-scored against its 1-year history and fitted with an AR(1) model to get its mean-reversion half-life, which sets the holding period. The most stretched trade that reverts within 3 months is suggested; slope trades are tilted by the Fed cycle on the Charts tab.</p></section>`;
+
+  h += trackerHtml();
+  $("curve").innerHTML = h || `<div class="empty">No curve data loaded.</div>`;
+  if (!C) return;
+
+  if (C.pick) {
+    const b = C.candidates[0], v = b.history, n = v.length;
+    const ch = lineChart("sp", v.map((_, i) => i), [{ cls: "s0", vals: v, short: "" }], {
+      fmtY: t => t,
+      extra: (x, y, x0, x1) => `<rect class="band" x="${x0}" width="${x1 - x0}" y="${y(b.mean + b.sd)}" height="${y(b.mean - b.sd) - y(b.mean + b.sd)}"/>`
+        + `<line class="mean" x1="${x0}" x2="${x1}" y1="${y(b.mean)}" y2="${y(b.mean)}"/>`,
+      label: (d, i) => i === 0 ? "1y ago" : i === n - 1 ? "now" : "" });
+    $("sp-box").innerHTML = ch.svg;
+    ch.wire($("curve"), i => $("sp-ro").innerHTML = `<b>${v[i].toFixed(1)}bp</b> <span class="cmp">${i === n - 1 ? "latest close" : (n - 1 - i) + " trading days ago"} · z ${((v[i] - b.mean) / b.sd).toFixed(2)} · band = mean ±1σ</span>`);
+  }
+  const names = ["Level", "Slope", "Curvature"];
+  const pc = lineChart("pc", C.tenors, C.loadings.map((l, k) => ({ cls: "s" + k, vals: l, short: names[k] })), {
+    step: true, fmtY: t => t, label: d => ten(d),
+    extra: (x, y, x0, x1) => `<line class="zero" x1="${x0}" x2="${x1}" y1="${y(0)}" y2="${y(0)}"/>` });
+  $("pc-box").innerHTML = pc.svg;
+  pc.wire($("curve"), i => $("pc-ro").innerHTML = C.loadings.map((l, k) => `<span class="k s${k}"></span>${names[k]} <b style="font:500 13px var(--mono)">${l[i] > 0 ? "+" : l[i] < 0 ? "−" : ""}${Math.abs(l[i]).toFixed(2)}</b>`).join(" ") + ` <span class="cmp">${ten(C.tenors[i])}</span>`);
+}
+
+function fomcCard() {
+  const F = DATA.fomc;
+  $("fsec").hidden = !F || (state.c !== "all" && state.c !== "US");
+  if (!F) return;
+  const d = new Date(F.date + "T12:00:00");
+  const seg = ([op, t]) => op === "del" ? `<del>${esc(t)}</del>` : op === "add" ? `<ins>${esc(t)}</ins>` : esc(t);
+  const lines = (F.lines || []).map(l => l === null ? `<p class="gap">…</p>` : `<p>${l.map(seg).join(" ")}</p>`).join("");
+  $("fomc").innerHTML = `<div class="eyebrow">${fmt(d, { weekday: "short", day: "numeric", month: "short", year: "numeric" })}${F.vote ? " · " + esc(F.vote) : ""}</div>
+    <div class="ttl">${esc(F.decision)}</div>
+    ${F.dissent ? `<div class="sub">${esc(F.dissent)}</div>` : ""}
+    ${F.read && F.read.length ? `<ul class="airead">${F.read.map(l => `<li>${esc(l)}</li>`).join("")}</ul><div class="sub">AI-written read of the wording changes (Groq). Not investment advice.</div>` : ""}
+    ${F.has_previous ? `<details><summary>Redline vs the previous statement</summary><div class="redline">${lines || "<p>No wording changes.</p>"}</div></details>` : ""}
+    <a class="sub" href="${esc(F.url)}">Full statement on federalreserve.gov</a>`;
+}
+
+function auctionTable() {
+  const A = DATA.auctions || [];
+  $("asec").hidden = !A.length || (state.c !== "all" && state.c !== "US");
+  if (!A.length) return;
+  const sgn = (v, k = 1) => v == null ? "" : (v > 0 ? "+" : v < 0 ? "−" : "±") + Math.abs(v).toFixed(k);
+  const vs = (v, avg, k, unit) => v == null ? "–" : `${v.toFixed(k)}${unit}<span class="dt">${avg == null ? "" : "avg " + avg.toFixed(k) + unit}</span>`;
+  $("auc").innerHTML = `<tr><th class="l">Auction</th><th>Yield</th><th>Cover</th><th>Indirect</th><th>Dealers</th></tr>` + A.map(a => {
+    const d = new Date(a.date + "T12:00:00");
+    return `<tr><td>${esc(a.term)} <span class="read ${a.read}">${a.read}</span><span class="dt">${fmt(d, { weekday: "short", day: "numeric", month: "short" })}${a.size_bn ? " · $" + a.size_bn + "bn" : ""}</span></td>
+      <td class="lvl">${a.yield.toFixed(3)}<span class="dt">${a.yield_chg_bp == null ? "" : sgn(a.yield_chg_bp) + "bp"}</span></td>
+      <td>${vs(a.btc, a.btc_avg, 2, "x")}</td><td>${vs(a.indirect, a.indirect_avg, 1, "%")}</td><td>${vs(a.dealer, a.dealer_avg, 1, "%")}</td></tr>`;
+  }).join("");
+}
+
+function render() {
+  document.querySelectorAll(".tabs button").forEach(b => b.setAttribute("aria-pressed", b.dataset.tab === state.tab));
+  const onCharts = state.tab === "charts", onCurve = state.tab === "curve";
+  ["next", "week", "cbsec"].forEach(id => $(id).hidden = onCharts || onCurve);
+  $("f-high").hidden = onCharts; $("charts").hidden = !onCharts; $("curve").hidden = !onCurve;
+  document.querySelector(".controls").hidden = onCurve;  // the curve is US-only
+  document.querySelectorAll(".seg:not(.tabs) button").forEach(b => b.setAttribute("aria-pressed", b.dataset.c === state.c));
+  $("f-high").setAttribute("aria-pressed", state.high);
+  try { localStorage.setItem("mw-filter", JSON.stringify(state)); } catch (e) {}
+  week(); banks(); fomcCard(); auctionTable(); yieldsTable();
+  if (onCharts || onCurve) { $("fsec").hidden = true; $("asec").hidden = true; }
+  if (onCharts) { charts(); $("ysec").hidden = true; }
+  if (onCurve) { curveTab(); $("ysec").hidden = !(DATA.yields || []).length; }
+}
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { state.tab = b.dataset.tab; render(); });
+document.querySelectorAll(".seg:not(.tabs) button").forEach(b => b.onclick = () => { state.c = b.dataset.c; render(); });
+$("f-high").onclick = () => { state.high = !state.high; render(); };
+header(); brief(); render();
+</script>
